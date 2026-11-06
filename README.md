@@ -7,11 +7,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/SERV_Hackathon_02-Kite_track-C8F542?style=flat-square&labelColor=0A0A0B" alt="SERV Hackathon 02 · Kite track" />
-  <img src="https://img.shields.io/badge/AI-SERV_Reasoning-C8F542?style=flat-square&labelColor=0A0A0B" alt="SERV Reasoning" />
-  <img src="https://img.shields.io/badge/payments-Kite_Passport-F4F2EE?style=flat-square&labelColor=0A0A0B" alt="Kite Passport" />
-  <img src="https://img.shields.io/badge/networks-7-2775CA?style=flat-square&labelColor=0A0A0B" alt="7 networks" />
-  <img src="https://img.shields.io/badge/Next.js-16-F5F5F6?style=flat-square&labelColor=0A0A0B" alt="Next.js 16" />
+  <img src="docs/images/badges/hackathon.svg" alt="SERV Hackathon 02 · Kite track" />
+  <img src="docs/images/badges/serv.svg" alt="AI: SERV Reasoning" />
+  <img src="docs/images/badges/kite.svg" alt="Payments: Kite Passport" />
+  <img src="docs/images/badges/networks.svg" alt="7 networks · USDC / USDG" />
+  <img src="docs/images/badges/next.svg" alt="Built with Next.js 16" />
 </p>
 
 ---

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="175" height="28" viewBox="0 0 175 28" role="img" aria-label="built with: Next.js 16">
+<title>built with: Next.js 16</title>
+<clipPath id="r"><rect width="175" height="28" rx="6"/></clipPath>
+<g clip-path="url(#r)"><rect width="85" height="28" fill="#0A0A0B"/><rect x="85" width="90" height="28" fill="#F5F5F6"/></g>
+
+<g font-family="Verdana,DejaVu Sans,sans-serif" font-size="12" font-weight="600">
+<text x="10" y="18.5" fill="#F5F5F6">built with</text>
+<text x="95" y="18.5" fill="#0A0A0B">Next.js 16</text>
+</g></svg>
