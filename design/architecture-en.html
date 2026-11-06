@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Plot Twist — Architecture v1.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="ds.css" />
+<link rel="stylesheet" href="ds-v3.css" />
+<link rel="stylesheet" href="ds-v4.css" />
+<style>
+  body { background: #0A0A0B; font-family: "Geist", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .page { width: 1360px; margin: 0 auto; padding: 48px 0 80px; }
+  .hd { display: flex; align-items: center; justify-content: space-between; }
+  .hd h1 { font-size: 34px; letter-spacing: -0.03em; font-weight: 600; display: flex; align-items: center; gap: 14px; }
+  .hd h1 img { width: 44px; }
+  .hd p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .legend { display: flex; gap: 10px; font-size: 13px; color: var(--soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line2); }
+  .legend i { width: 12px; height: 12px; border-radius: 4px; }
+  .sec-t { margin: 46px 0 16px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+
+  /* zones */
+  .zones { display: grid; grid-template-columns: 1fr 1.35fr 1fr; gap: 16px; }
+  .zone { border-radius: 26px; padding: 18px; border: 1px solid var(--line); background: var(--s1); display: flex; flex-direction: column; gap: 10px; }
+  .zone > h3 { font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+  .zone > h3 small { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .box { border-radius: 18px; padding: 14px 16px; background: var(--s2); border: 1px solid var(--line); }
+  .box b { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .box b .brand, .box b img { width: 18px; height: 18px; }
+  .box b .os { width: 64px; height: 15px; }
+  .box ul { margin: 8px 0 0 16px; color: var(--soft); font-size: 13px; line-height: 1.65; }
+  .box code { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--accent); background: rgba(200, 245, 66, 0.08); padding: 1px 6px; border-radius: 6px; }
+  .box.kown { background: #F4F2EE; color: #141414; border-color: #E6E1D8; }
+  .box.kown ul { color: #4A463F; }
+  .box.serv { border-color: rgba(200, 245, 66, 0.45); }
+  .box.ours { border-color: rgba(255, 255, 255, 0.16); }
+  .nets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+  .net { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 8px; border-radius: 10px; background: var(--s1); }
+  .net .ci { width: 20px; height: 20px; }
+  .net em { margin-left: auto; font-style: normal; font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .net em .ti { width: 13px; height: 13px; }
+
+  /* sequence */
+  .seq { border-radius: 26px; border: 1px solid var(--line); background: var(--s1); padding: 20px 18px 24px; }
+  .lanes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; }
+  .lane-h { text-align: center; font-size: 13px; font-weight: 600; padding: 10px 6px; border-radius: 12px; margin: 0 8px 6px; background: var(--s2); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .lane-h.kown { background: #F4F2EE; color: #141414; }
+  .lane-h.serv { border-color: rgba(200, 245, 66, 0.45); }
+  .lane-h .brand, .lane-h img { width: 16px; height: 16px; }
+  .rows { position: relative; }
+  .rows::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0, transparent calc(100% / 12 - 1px), rgba(255, 255, 255, 0.07) calc(100% / 12 - 1px), rgba(255, 255, 255, 0.07) calc(100% / 12), transparent calc(100% / 12), transparent calc(100% / 6)); pointer-events: none; }
+  .msg { display: grid; grid-template-columns: repeat(12, 1fr); align-items: center; min-height: 54px; position: relative; }
+  .arrow { position: relative; height: 2px; background: var(--soft); margin-top: 18px; }
+  .arrow::after { content: ""; position: absolute; top: -5px; width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+  .arrow.r::after { right: -2px; border-left: 9px solid var(--soft); }
+  .arrow.l::after { left: -2px; border-right: 9px solid var(--soft); }
+  .arrow.k { background: #D9CDB6; } .arrow.k.r::after { border-left-color: #D9CDB6; } .arrow.k.l::after { border-right-color: #D9CDB6; }
+  .arrow.a { background: var(--accent); } .arrow.a.r::after { border-left-color: var(--accent); } .arrow.a.l::after { border-right-color: var(--accent); }
+  .arrow span { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); white-space: nowrap; font-size: 12.5px; color: var(--text); background: var(--s1); padding: 2px 8px; border-radius: 8px; }
+  .arrow span i { font-style: normal; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; margin-right: 6px; }
+  .self { grid-column: span 2; margin: 8px; padding: 8px 10px; border-radius: 12px; background: var(--s2); border: 1px dashed var(--line2); font-size: 12.5px; color: var(--soft); text-align: center; }
+  .self i { font-style: normal; display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; margin-right: 6px; }
+  .box ul b { display: inline; font-size: inherit; }
+  .arrow em.state { font-style: normal; margin-left: 6px; }
+  .state { font-family: "Geist Mono", monospace; font-size: 11px; color: var(--accent); }
+
+  /* states + verify */
+  .two { display: grid; grid-template-columns: 1fr 1.3fr; gap: 16px; }
+  .card2 { border-radius: 26px; border: 1px solid var(--line); background: var(--s1); padding: 22px; }
+  .sm { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .sm span { font-family: "Geist Mono", monospace; font-size: 13px; padding: 8px 12px; border-radius: 10px; background: var(--s2); border: 1px solid var(--line2); }
+  .sm em { color: var(--dim); font-style: normal; }
+  .card2 h4 { font-size: 16px; font-weight: 600; }
+  .card2 p { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin-top: 8px; }
+  .vl { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .vi { display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--s2); font-size: 13.5px; line-height: 1.55; color: var(--soft); }
+  .vi b { color: var(--text); font-weight: 600; }
+  .vi .q.ok { background: rgba(200, 245, 66, 0.15); color: var(--accent); }
+  .vi .q { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: rgba(245, 166, 35, 0.15); color: #F5A623; font-weight: 700; font-size: 12px; }
+  .foot { margin-top: 28px; font-size: 12.5px; color: var(--dim); }
+  .legend span { white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="page" id="page"></div>
+<script src="brand.js"></script>
+<script src="tokens.js"></script>
+<script src="ui.js"></script>
+<script>
+  const U = UI, C = window.CHAINS;
+  const nets = U.CHAIN_ORDER.map((id) => `<div class="net">${U.chainImg(id)}${C[id].name}<em>${U.tokImg(C[id].asset.sym)}${C[id].asset.sym}</em></div>`).join("");
+  const lane = (cls, html) => `<div class="lane-h ${cls}">${html}</div>`;
+  /* message: from lane a to lane b (0-5), label, kind */
+  const msg = (a, b, n, label, kind = "") => {
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    const start = lo * 2 + 2, end = hi * 2 + 2;
+    return `<div class="msg"><div class="arrow ${a < b ? "r" : "l"} ${kind}" style="grid-column:${start} / ${end}"><span><i>${n}</i>${label}</span></div></div>`;
+  };
+  const self = (l, n, label) => `<div class="msg"><div class="self" style="grid-column:${l * 2 + 1} / span 2"><i>${n}</i>${label}</div></div>`;
+
+  document.getElementById("page").innerHTML = `
+    <div class="hd">
+      <div><h1><img src="assets/app-icon.png" alt="" />Plot Twist · Architecture v1.2</h1><p>Digital-dollar gifts on the seven networks Kite Passport holds (USDC on six, USDG on Robinhood Chain). Paid with a passkey-approved Kite transfer. One gift lives on one network.</p></div>
+      <div class="legend"><span><i style="background:#F4F2EE"></i>Kite</span><span><i style="border:1px solid #C8F542"></i>SERV</span><span><i style="background:#222226;border:1px solid #444"></i>Plot Twist</span></div>
+    </div>
+
+    <div class="sec-t">① Components</div>
+    <div class="zones">
+      <div class="zone">
+        <h3>Pay · sender <small>Kai</small></h3>
+        <div class="box ours"><b>Web app (desktop + phone)</b><ul><li>Landing, Create, Dashboard</li><li>Next.js 16, one responsive design system</li></ul></div>
+        <div class="box kown"><b>${U.brand("kite")}Kite Passport</b><ul>
+          <li>Email-code sign-in; new users sign up and create a passkey on Kite</li>
+          <li>Stablecoin balance on each of the seven networks</li>
+          <li><b>Wallet transfers</b>, each approved with a passkey: one amount, one network, one recipient</li>
+          <li>Top-ups from the user's own wallet, a card, or an exchange; withdrawals to any wallet</li></ul></div>
+      </div>
+      <div class="zone">
+        <h3>Fulfil · Plot Twist platform <small>us</small></h3>
+        <div class="box serv"><b><span class="brand os">${window.BRAND.openserv}</span>SERV Reasoning</b><ul>
+          <li>One sentence → recipient, occasion, amount, network (if named) and a note — strict JSON schema</li>
+          <li>Note rewrites; answers the recipient's questions ("What is USDC?"), no investment advice</li></ul></div>
+        <div class="box ours"><b>Gift API</b><ul>
+          <li>Creates the gift and asks Kite for the transfer; polls it and verifies it on-chain → <code>sealed</code></li>
+          <li>Claim with a signed message; take-back after the claim window</li>
+          <li>Dashboard: sent / received, linked wallets</li></ul></div>
+        <div class="box ours"><b>Treasury (platform wallets)</b><ul>
+          <li>One address per network: gift payments land here, recipients are paid from here (gas covered)</li>
+          <li>Payouts are recorded the moment they're broadcast — never paid twice</li>
+          <li>v2: on-chain escrow contracts</li></ul></div>
+        <div class="box ours"><b>Storage</b><ul><li>Gifts, sessions (Kite token encrypted server-side), accounts and linked wallets</li></ul></div>
+      </div>
+      <div class="zone">
+        <h3>Receive · recipient <small>Maya</small></h3>
+        <div class="box ours"><b>Gift page (desktop + phone)</b><ul><li>Sealed → reveal → ask SERV → connect wallet → claim</li></ul></div>
+        <div class="box ours"><b>Recipient wallet (no Kite needed)</b><ul>
+          <li>EVM: MetaMask, Coinbase Wallet, Trust Wallet</li>
+          <li>Solana: Phantom, Solflare, Trust Wallet</li>
+          <li>On phones, deep links open the page inside the wallet's browser</li></ul></div>
+        <div class="box ours"><b>Seven networks (all native to Kite Passport)</b><div class="nets">${nets}</div></div>
+      </div>
+    </div>
+
+    <div class="sec-t">② One gift, end to end</div>
+    <div class="seq">
+      <div class="lanes">
+        ${lane("", "Sender Kai · web app")}
+        ${lane("serv", `<span class="brand os" style="width:52px;height:13px">${window.BRAND.openserv}</span>SERV`)}
+        ${lane("", "Gift API")}
+        ${lane("kown", `${U.brand("kite")}Kite Passport`)}
+        ${lane("", "Treasury")}
+        ${lane("", "Recipient Maya · wallet")}
+      </div>
+      <div class="rows">
+        ${msg(0, 1, 1, "Describe the gift in one sentence")}
+        ${msg(1, 0, 2, "Design: recipient · amount · network · note", "a")}
+        ${self(0, 3, "Edit anything, pick the claim window")}
+        ${msg(0, 2, 4, "Connect Kite: email + code")}
+        ${msg(2, 3, 5, "Sign in for Kai, read balances", "k")}
+        ${msg(0, 2, 6, "Create gift  <em class='state'>awaiting_payment</em>")}
+        ${msg(2, 3, 7, "Transfer gift + fee → platform address", "k")}
+        ${msg(3, 0, 8, "Approval page: one passkey tap", "k")}
+        ${msg(3, 4, 9, "On-chain transfer (same network)", "k")}
+        ${self(2, 10, "Verify on-chain  <em class='state'>sealed</em>")}
+        ${msg(2, 0, 11, "Gift link + QR code", "a")}
+        ${msg(0, 5, 12, "Share (Telegram / X / WhatsApp)")}
+        ${self(5, 13, "Reveal → ask SERV → connect wallet")}
+        ${msg(5, 2, 14, "Claim with a signed message")}
+        ${msg(4, 5, 15, "Send USDC / USDG, gas covered  <em class='state'>claimed</em>", "a")}
+        ${self(0, 16, "Unclaimed after the window? Take it back  <em class='state'>reclaimed</em>")}
+      </div>
+    </div>
+
+    <div class="sec-t">③ Gift states & safety</div>
+    <div class="two">
+      <div class="card2">
+        <h4>Gift states</h4>
+        <div class="sm"><span>awaiting_payment</span><em>→</em><span>sealed</span><em>→</em><span>claiming</span><em>→</em><span>claimed</span></div>
+        <div class="sm"><span>sealed</span><em>→ window over →</em><span>reclaiming</span><em>→</em><span>reclaimed</span></div>
+        <div class="sm"><span>awaiting_payment</span><em>→</em><span>payment_failed</span></div>
+        <p>The sender picks the claim window (24h, 3d, 7d or 30d). After it, the recipient can still claim until the sender takes the gift back from the Dashboard. Only the gift amount comes back; the fee doesn't.</p>
+      </div>
+      <div class="card2">
+        <h4>Safety by design</h4>
+        <div class="vl">
+          <div class="vi"><span class="q ok">✓</span><div><b>Kite approves every transfer</b> with the sender's passkey — Plot Twist never holds their keys.</div></div>
+          <div class="vi"><span class="q ok">✓</span><div><b>Payments verified on-chain</b>: token contract, amount, sender's Kite address; one transfer seals one gift.</div></div>
+          <div class="vi"><span class="q ok">✓</span><div><b>Claims are signed</b> by the recipient's wallet over the gift code, address and a per-gift nonce.</div></div>
+          <div class="vi"><span class="q ok">✓</span><div><b>No double payouts</b>: the tx hash is saved on broadcast; a gift reopens only if the transfer provably can't land.</div></div>
+          <div class="vi"><span class="q ok">✓</span><div><b>Unguessable links</b> (128-bit codes), rate limits on SERV, sign-in and claims, link previews without amounts.</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="foot">Sources: Kite Passport docs and passport-skills; tested against Kite's live API in November 2026.</p>`;
+</script>
+</body>
+</html>

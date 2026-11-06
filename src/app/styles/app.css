@@ -155,3 +155,11 @@ body { font-family: var(--font-geist-sans), "Geist", Inter, ui-sans-serif, syste
 @media (max-width: 640px) { .app[data-pending] { visibility: hidden; } }
 /* Keep "Robinhood Chain" and friends on one line in tables. */
 .as-cell, .as-cell .on-chain { white-space: nowrap; }
+/* Gift links are long (128-bit codes): truncate instead of pushing the Copy button out. */
+.linkbox span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.linkbox .copy { flex-shrink: 0; }
+/* Table cells: long network names truncate rather than run into the next column. */
+.tr > * { min-width: 0; }
+.mix { overflow: hidden; }
+.as-cell { max-width: 100%; overflow: hidden; }
+.as-cell .on-chain { overflow: hidden; text-overflow: ellipsis; }
