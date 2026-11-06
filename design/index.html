@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plot Twist — Visual direction v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="ds.css" />
+<link rel="stylesheet" href="ds-v3.css" />
+<link rel="stylesheet" href="ds-v4.css" />
+<style>
+  .toolbar { position: sticky; top: 0; z-index: 100; display: flex; gap: 8px; align-items: center; justify-content: center; padding: 12px; background: rgba(5, 5, 6, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .toolbar button { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line2); color: var(--soft); }
+  .toolbar button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .toolbar a { margin-left: 16px; color: var(--accent); }
+  .board { padding: 24px 0 80px; display: flex; flex-direction: column; align-items: center; }
+  .frame-label { width: 1440px; font-size: 13px; color: var(--dim); letter-spacing: 0.02em; margin: 40px 0 12px; }
+  .frame { border: 1px solid var(--line); }
+  .shot .toolbar, .shot .frame-label { display: none; }
+  .shot .board { padding: 0; gap: 40px; }
+  .mascots { position: relative; z-index: 1; display: flex; gap: 40px; align-items: center; justify-content: center; height: 100%; }
+  .ms-main { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .ms-main img { width: 240px; }
+  .ms-main b { font-size: 28px; letter-spacing: -0.03em; }
+  .ms-main span, .ms span { font-size: 13px; color: var(--muted); }
+  .ms-grid { display: grid; grid-template-columns: repeat(2, 240px); gap: 16px; }
+  .ms { background: var(--s1); border: 1px solid var(--line); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .ms img { height: 150px; width: auto; }
+  .ms img[src*="m-wink"] { mix-blend-mode: lighten; }
+  .phones { width: 1440px; height: 900px; display: flex; justify-content: center; align-items: center; gap: 56px; background: #050506; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <a href="prototype.html">▶ 打开可交互原型</a>
+  </div>
+  <div class="board" id="board"></div>
+
+<script src="brand.js"></script>
+<script src="tokens.js"></script>
+<script src="ui.js"></script>
+<script>
+  const U = UI;
+  U.setKite(true);
+  const frames = [
+    ["logo", "00 · 吉祥物 / Logo", () => `
+      <div class="mascots">
+        <div class="ms-main">${U.mascot("icon")}<b>Plot Twist</b><span>App icon</span></div>
+        <div class="ms-main">${U.mascot("head")}<span>Logo · favicon（透明底）</span></div>
+        <div class="ms-grid">
+          ${[["secret", "封存 · 嘘，是个秘密"], ["surprise", "揭晓 · 撒花"], ["claimed", "领取成功"], ["wink", "首页 / 空状态"]].map(([k, t]) => `<div class="ms">${U.mascot(k)}<span>${t}</span></div>`).join("")}
+        </div>
+      </div>`],
+    ["landing", "01 · 首页（首屏）", () => `<div class="desk-scroll">${U.landing()}</div>`],
+    ["create", "02 · 创建", () => U.createScreen({ phase: "filled" })],
+    ["review", "03 · 确认", () => U.createScreen({ phase: "filled" }) + `<div class="scrim">${U.reviewModal()}</div>`],
+    ["kite", "04 · Kite Passport 授权", () => U.createScreen({ phase: "filled" }) + `<div class="scrim">${U.kiteSheet()}</div>`],
+    ["ready", "05 · 礼物生成完成", () => U.createScreen({ phase: "filled" }) + `<div class="scrim">${U.readyModal()}</div>`],
+    ["claim", "06 · 领取（封存 / 揭晓）", () => `
+      <header class="nav">${U.logo()}<div class="nav-r"><a class="btn sm sec">Send your own</a></div></header>
+      <div class="claim-wrap">
+        <div class="col"><span class="cap">1 · Sealed</span>${U.claimCard({ phase: "sealed" })}</div>
+        <div class="col"><span class="cap">2 · Revealed</span>${U.claimCard({ phase: "revealed" })}</div>
+      </div>`],
+    ["gifts", "07 · My gifts", () => U.giftsPage({ maya: "wait" })],
+  ];
+
+  function render() {
+    const board = document.getElementById("board");
+    board.innerHTML = frames.map(([id, label, html]) => `<div class="frame-label">${label}</div><section class="screen desk glow frame" id="${id}">${html()}</section>`).join("")
+      + `<div class="frame-label">08 · 手机端</div><div class="phones" id="mobile">
+          ${U.phone(`${U.phNav('<span class="pill"><span class="avatar"></span>0x7a3…91c</span>')}<div class="ph-body"><div class="stage">${U.createCard({ phase: "filled" })}</div></div>`)}
+          ${U.phone(`${U.phNav('<a class="btn sm sec">Send your own</a>')}<div class="ph-body"><div class="claim-wrap"><div class="col">${U.claimCard({ phase: "revealed" })}</div></div></div>`)}
+        </div>`;
+    U.hydrate(board);
+  }
+
+  const params = new URLSearchParams(location.search);
+  if (params.has("shot")) document.body.classList.add("shot");
+  render();
+</script>
+</body>
+</html>
