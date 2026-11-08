@@ -5,15 +5,15 @@ import { ClaimError, claimGift } from "@/lib/gifts";
 import { rateLimit } from "@/lib/rate-limit";
 import { getKite } from "@/lib/session";
 
-const bodySchema = z.object({ address: z.string().min(32).max(64), signature: z.string().min(64).max(4000) });
+const bodySchema = z.object({ address: z.string().trim().min(32).max(64), signature: z.string().min(64).max(4000).optional() });
 
-/** The recipient proves the wallet is theirs (signed message); the platform sends the gift, gas included. */
+/** Claims to a connected wallet (signed message) or a pasted address; the platform sends the gift, gas included. */
 export async function POST(request: NextRequest, ctx: RouteContext<"/api/gifts/[code]/claim">) {
   const limited = await rateLimit("claim");
   if (limited) return limited;
   const { code } = await ctx.params;
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Connect a wallet to claim" }, { status: 400 });
+  if (!parsed.success) return Response.json({ error: "Connect a wallet or paste an address to claim" }, { status: 400 });
   try {
     const kite = await getKite();
     const account = kite ? { id: kite.userId || kite.email, email: kite.email } : undefined;

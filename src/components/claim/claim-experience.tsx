@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { isAddress } from "viem";
 import { NETWORKS } from "@/lib/chains";
 import { claimMessage, type PublicGift } from "@/lib/types";
 import { CHAIN_UI, WALLETS, type WalletKey } from "@/lib/ui-assets";
@@ -15,6 +16,7 @@ type Phase = "sealed" | "revealed" | "connected" | "claiming" | "claimed" | "exp
 const TAKEN_BACK = ["reclaiming", "reclaimed"];
 const short = (a: string) => `${a.slice(0, 5)}…${a.slice(-4)}`;
 const spark = <svg className="s" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z" /></svg>;
+const looksValid = (kind: "evm" | "solana", a: string) => (kind === "evm" ? isAddress(a) : /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(a));
 const QUESTIONS = (sym: string) => [["why", `What is ${sym}?`], ["what", "What can I do with it?"]] as const;
 
 export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
@@ -28,6 +30,9 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
   const [sheet, setSheet] = useState(false);
   const [connecting, setConnecting] = useState<WalletKey | null>(null);
   const [wallet, setWallet] = useState<Connected | null>(null);
+  // Claiming to a pasted address (e.g. an exchange deposit address) instead of a connected wallet.
+  const [paste, setPaste] = useState<string | null>(null);
+  const [pasted, setPasted] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [txUrl, setTxUrl] = useState<string>();
   const amountRef = useRef<HTMLDivElement>(null);
@@ -36,7 +41,7 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
   const ui = CHAIN_UI[gift.network];
   const a = net.asset;
   const amount = Number(gift.amount);
-  const claimedAddress = wallet?.address || gift.claim?.address || "";
+  const claimedAddress = wallet?.address || pasted || gift.claim?.address || "";
   const left = timeLeft(gift.expiresAt);
   const windowOver = !!gift.expiresAt && !left;
 
@@ -67,7 +72,7 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
     setConnecting(key); setError("");
     try {
       const w = await connectWallet(key, gift.network);
-      setWallet(w); setSheet(false); setPhase("connected");
+      setWallet(w); setPasted(null); setSheet(false); setPhase("connected");
     } catch (e) {
       if (e instanceof NoWallet && e.link && m) { window.location.assign(e.link); return; }
       setError(e instanceof NoWallet ? `${WALLETS[key].name} isn't installed in this browser.` : "The wallet didn't connect. Try again.");
@@ -76,17 +81,24 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
     }
   }
 
+  function usePasted() {
+    const a = (paste ?? "").trim();
+    if (!looksValid(net.kind, a)) { setError(`That doesn't look like a valid ${net.kind === "solana" ? "Solana" : "0x…"} address. Copy it again from your wallet or exchange.`); return; }
+    setWallet(null); setPasted(a); setSheet(false); setError(""); setPhase("connected");
+  }
+
   async function claim() {
-    if (!wallet || !gift.claimNonce) return;
+    const address = wallet?.address ?? pasted;
+    if (!address || !gift.claimNonce) return;
     setError("");
     try {
-      const signature = await wallet.sign(claimMessage(gift.code, wallet.address, gift.claimNonce));
+      const signature = wallet ? await wallet.sign(claimMessage(gift.code, wallet.address, gift.claimNonce)) : undefined;
       setPhase("claiming");
-      const r = await fetch(`/api/gifts/${gift.code}/claim`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: wallet.address, signature }) });
+      const r = await fetch(`/api/gifts/${gift.code}/claim`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address, signature }) });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d.error || "The claim didn't go through");
       setTxUrl(d.txUrl);
-      setGift((g) => ({ ...g, status: "claimed", claim: { address: wallet.address, txHash: d.txHash } }));
+      setGift((g) => ({ ...g, status: "claimed", claim: { address, txHash: d.txHash } }));
       setPhase("claimed");
     } catch (e) {
       setPhase("connected");
@@ -146,7 +158,7 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
     );
   } else {
     const cta = phase === "revealed"
-      ? <button className="cta" onClick={() => { setError(""); setSheet(true); }}>Connect wallet to claim</button>
+      ? <button className="cta" onClick={() => { setError(""); setPaste(null); setSheet(true); }}>Claim {usd(amount)}</button>
       : phase === "connected"
         ? <button className="cta" onClick={claim}>Claim {usd(amount)} to {short(claimedAddress)}</button>
         : <button className="cta off" disabled><span className="spin" />Claiming on {net.name}</button>;
@@ -162,7 +174,10 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
         </div>
         <div className="quote">“{gift.note}”</div>
         {cta}
-        {error && <p className="err-line">{error}</p>}
+        {phase === "connected" && pasted && (
+          <p className="foot paste-check">To <b className="num">{pasted}</b> on <ChainImg id={gift.network} className="xs" />{net.name} · <button className="link" onClick={() => { setPaste(pasted); setSheet(true); }}>Change</button></p>
+        )}
+        {!sheet && error && <p className="err-line">{error}</p>}
         {phase === "revealed" && (left || windowOver) && (
           <p className="foot" style={{ marginTop: 10 }}>
             {left ? <>Claim within {left.replace(" left", "")} — after that {gift.senderName} can take it back.</> : <>The claim window has ended and {gift.senderName} can take it back anytime. Claim it while it’s here.</>}
@@ -204,7 +219,8 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
           <div className="sheet-scrim" onClick={() => setSheet(false)} />
           <div className="sheet">
             <div className="grab" />
-            <div className="m-h" style={{ marginBottom: 2 }}><span>Connect a wallet</span><button className="x" onClick={() => setSheet(false)}>{I.x}</button></div>
+            {paste === null ? (<>
+            <div className="m-h" style={{ marginBottom: 2 }}><span>Where should it go?</span><button className="x" onClick={() => setSheet(false)}>{I.x}</button></div>
             <p className="sub">Your gift lands on <ChainImg id={gift.network} className="xs" />{net.name}. No sign-up, no gas.</p>
             <div className="wallets">
               {ui.wallets.map((k, i) => (
@@ -216,8 +232,24 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
                 </button>
               ))}
             </div>
+            <div className="or-line"><span>or</span></div>
+            <button className="wl paste-wl" onClick={() => { setError(""); setPaste(""); }}>
+              <span className="brand paste-ic">{I.copy}</span>
+              Paste an address
+              <small>Exchange or any wallet</small>
+            </button>
             {error && <p className="err-line">{error}</p>}
             {net.isNew && <p className="fine" style={{ textAlign: "left", marginTop: 12 }}>{net.name} is a newer network. After claiming, your wallet can add it in one tap.</p>}
+            </>) : (<>
+            <div className="m-h" style={{ marginBottom: 2 }}><button className="x back" onClick={() => { setPaste(null); setError(""); }}>{I.chev}</button><span>Paste an address</span><button className="x" onClick={() => setSheet(false)}>{I.x}</button></div>
+            <p className="sub">A {net.kind === "solana" ? "Solana" : "0x…"} address that can receive <b>{a.symbol} on <ChainImg id={gift.network} className="xs" />{net.name}</b>.</p>
+            <label className="tu-amt">
+              <input className="tu-addr num" autoFocus placeholder={net.kind === "solana" ? "Solana address" : "0x… address"} value={paste} onChange={(e) => { setPaste(e.target.value.trim()); setError(""); }} spellCheck={false} />
+            </label>
+            <div className="paste-warn">{I.lock}<span>From an exchange? Use its <b>{a.symbol} deposit address on {net.name}</b>. If the exchange doesn’t support {net.name}, the gift can’t be recovered.</span></div>
+            <button className="cta" disabled={!paste} onClick={usePasted}>Continue</button>
+            {error && <p className="err-line">{error}</p>}
+            </>)}
           </div>
         </>
       )}

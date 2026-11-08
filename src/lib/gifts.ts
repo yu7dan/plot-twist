@@ -5,7 +5,7 @@ import { me, sendStatus, startSend } from "./kite";
 import { feeFor, money, totalFor } from "./pricing";
 import { collection, newId } from "./store";
 import { sameAddress, validAddress, verifySignature } from "./signatures";
-import { payoutStatus, platformAddress, sendPayout, settlePayout, verifyIncoming, type SentPayout } from "./treasury";
+import { payoutAddressProblem, payoutStatus, platformAddress, sendPayout, settlePayout, verifyIncoming, type SentPayout } from "./treasury";
 import { claimMessage, type ExpiryHours, type Gift, type GiftDesign } from "./types";
 
 const gifts = collection<Gift>("gifts");
@@ -38,13 +38,13 @@ export async function createGift(jwt: string, ownerId: string, p: GiftDesign & {
   const send = await startSend(jwt, {
     network: p.network,
     to: platformAddress(p.network),
-    amount: money(totalFor(amount)),
+    amount: money(totalFor(amount, p.network)),
     idempotencyKey: `gift-${code}`,
   });
   const gift: Gift = {
     ...p,
     amount: money(amount),
-    fee: money(feeFor(amount)),
+    fee: money(feeFor(amount, p.network)),
     code,
     createdAt: new Date().toISOString(),
     status: "awaiting_payment",
@@ -167,6 +167,10 @@ export async function reclaimGift(code: string, ownerId: string, to?: string): P
   if (!reclaimable(gift)) throw new ReclaimError("You can take it back once the claim window ends", 409);
   const dest = to?.trim() || gift.payment.from;
   if (!dest || !validAddress(NETWORKS[gift.network].kind, dest)) throw new ReclaimError(`That isn't a ${NETWORKS[gift.network].name} address`);
+  if (to?.trim()) {
+    const problem = await payoutAddressProblem(gift.network, dest).catch(() => "We couldn't check that address. Please try again.");
+    if (problem) throw new ReclaimError(problem);
+  }
 
   const locked = await gifts.update(code, (g) => (reclaimable(g) ? { ...g, status: "reclaiming", reclaim: { to: dest, lockedAt: new Date().toISOString() } } : null));
   if (!locked) throw new ReclaimError("This gift just changed. Refresh and try again.", 409);
@@ -186,7 +190,12 @@ export class ClaimError extends Error {
 }
 
 /** `account` is set when the recipient is signed in; the claim then shows in their Dashboard. */
-export async function claimGift(code: string, address: string, signature: string, account?: { id: string; email: string }): Promise<Gift> {
+/**
+ * Pays the gift out to `address`. With a signature the recipient proved the wallet is theirs (and it gets linked
+ * to their account); without one they pasted an address, e.g. an exchange deposit address.
+ * The link itself is the claim right either way.
+ */
+export async function claimGift(code: string, address: string, signature: string | undefined, account?: { id: string; email: string }): Promise<Gift> {
   const gift = await getGift(code);
   if (!gift) throw new ClaimError("Gift not found", 404);
   if (gift.status === "claimed") throw new ClaimError("This gift was already claimed", 409);
@@ -196,11 +205,16 @@ export async function claimGift(code: string, address: string, signature: string
 
   const net = NETWORKS[gift.network];
   if (!validAddress(net.kind, address)) throw new ClaimError("That isn't a valid wallet address");
-  const message = claimMessage(gift.code, address, gift.claimNonce);
-  if (!(await verifySignature(net.kind, address, message, signature, gift.network))) throw new ClaimError("Signature doesn't match this wallet", 401);
+  if (signature) {
+    const message = claimMessage(gift.code, address, gift.claimNonce);
+    if (!(await verifySignature(net.kind, address, message, signature, gift.network))) throw new ClaimError("Signature doesn't match this wallet", 401);
+  } else {
+    const problem = await payoutAddressProblem(gift.network, address).catch(() => "We couldn't check that address. Please try again.");
+    if (problem) throw new ClaimError(problem);
+  }
 
   const locked = await gifts.update(code, (g) =>
-    g.status === "sealed" ? { ...g, status: "claiming", claim: { address, accountId: account?.id, lockedAt: new Date().toISOString() } } : null,
+    g.status === "sealed" ? { ...g, status: "claiming", claim: { address, accountId: account?.id, pasted: !signature || undefined, lockedAt: new Date().toISOString() } } : null,
   );
   if (!locked) throw new ClaimError("This gift is being claimed", 409);
   let result: Gift;
@@ -209,8 +223,8 @@ export async function claimGift(code: string, address: string, signature: string
   } catch {
     throw new ClaimError("The transfer didn't go through. Please try again.", 502);
   }
-  // The claim signature already proves the wallet is theirs.
-  if (account && result.status !== "sealed") await linkWallet(account.id, account.email, address, net.kind).catch(() => undefined);
+  // The claim signature already proves the wallet is theirs; a pasted address proves nothing, so it isn't linked.
+  if (account && signature && result.status !== "sealed") await linkWallet(account.id, account.email, address, net.kind).catch(() => undefined);
   if (result.status === "sealed") throw new ClaimError("The transfer didn't go through. Please try again.", 502);
   return result;
 }

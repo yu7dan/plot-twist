@@ -28,7 +28,7 @@ You type one sentence — *"Birthday gift for my sister Maya, around $50 — she
 
 - **Digital dollars on seven networks** — USDC on Base, Solana, Polygon, Avalanche, Arc and Tempo, and USDG on Robinhood Chain: every network Kite Passport holds stablecoins on. One gift lives on one network: you pay and they receive on the same network.
 - **No wallet setup for the sender** — sign in to Kite with an email code (new users get a Passport on the spot), top up from MetaMask / Phantom, a card or an exchange.
-- **The recipient needs no account** — any EVM or Solana wallet; on phones, wallet deep links open the gift inside the wallet's own browser.
+- **The recipient needs no account** — any EVM or Solana wallet, or just paste an exchange deposit address; on phones, wallet deep links open the gift inside the wallet's own browser.
 - **Unclaimed gifts aren't lost** — the sender picks a claim window (24h / 3d / 7d / 30d) and can take the gift back from the Dashboard afterwards.
 
 <p align="center">
@@ -135,7 +135,7 @@ SERV Reasoning (OpenAI-compatible API, `serv-mini`) is the gift's designer and i
 
 - **Passkey on every transfer**, approved on Kite — one amount, one network, one recipient.
 - **Payments verified on-chain**: token contract, amount and the sender's own Kite address; one transfer can seal only one gift.
-- **Claims are signed** by the recipient's wallet (EIP-191 / ERC-1271 on EVM, ed25519 on Solana) over the gift code, the address and a per-gift nonce.
+- **Claims to a connected wallet are signed** by it (EIP-191 / ERC-1271 on EVM, ed25519 on Solana) over the gift code, the address and a per-gift nonce. **Pasted addresses** are checksum-validated and screened, so a gift can't go to the platform address, the token contract or a Solana token account.
 - **No double payouts**: a payout's hash is saved the moment it's broadcast, and a gift only reopens when the transfer provably can't land. Payouts on a network go out one at a time.
 - **Unguessable links** (128-bit codes), rate limits on SERV, Kite sign-in and claims, the Kite session encrypted server-side, and link previews without amounts.
 

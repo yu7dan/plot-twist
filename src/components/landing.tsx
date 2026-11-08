@@ -20,7 +20,7 @@ const MOMENTS = [
 const TICKERS = ["AAPL", "NVDA", "TSLA", "MSFT", "AMZN", "GOOGL"];
 const FAQ = [
   ["What do they actually receive?", "Digital dollars in their own wallet — USDC, or USDG on Robinhood Chain — on the network you pick. Tokenized stocks are next."],
-  ["Do they need an account or gas?", "No. They open the link and connect a wallet. Network fees are covered."],
+  ["Do they need an account or gas?", "No. They open the link and connect a wallet, or paste an exchange deposit address. Network fees are covered."],
   ["Will the value change?", "No. USDC and USDG are dollar stablecoins, so the amount they see is the amount they get."],
   ["How does the AI help?", "SERV reads your description, works out the person, the amount and the occasion, and writes the note. You can change anything before you send."],
 ];

@@ -47,7 +47,7 @@ export interface Gift extends GiftDesign {
     confirmedAt?: string;
   };
   /** `sent` is recorded the moment a payout is broadcast; `txHash` once it's confirmed. */
-  claim?: { address: string; accountId?: string; lockedAt?: string; sent?: SentPayout; txHash?: string; claimedAt?: string };
+  claim?: { address: string; accountId?: string; pasted?: boolean; lockedAt?: string; sent?: SentPayout; txHash?: string; claimedAt?: string };
   reclaim?: { to: string; lockedAt?: string; sent?: SentPayout; txHash?: string; reclaimedAt?: string };
 }
 

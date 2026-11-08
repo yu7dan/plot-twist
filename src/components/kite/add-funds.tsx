@@ -29,7 +29,7 @@ export function AddFunds({ kite, onClose, onFunded, gift }: Props) {
   const net = NETWORKS[network];
   const sym = net.asset.symbol;
   const have = kite.balances[network] ?? 0;
-  const need = gift ? totalFor(gift.amount) : 0;
+  const need = gift ? totalFor(gift.amount, gift.network) : 0;
   const [value, setValue] = useState(gift ? Math.max(0.01, Math.ceil((need - have) * 100) / 100).toFixed(2) : "");
   const [busy, setBusy] = useState<WalletKey | null>(null);
   const [sent, setSent] = useState<{ hash: string; before: number; amount: number } | null>(null);

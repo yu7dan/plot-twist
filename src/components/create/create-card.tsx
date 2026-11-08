@@ -47,7 +47,7 @@ interface Props {
   onCreate: () => void;
 }
 
-export const canPay = (kite: KiteState, network: NetworkId, amount: number) => (kite.balances[network] ?? 0) + 1e-9 >= totalFor(amount);
+export const canPay = (kite: KiteState, network: NetworkId, amount: number) => (kite.balances[network] ?? 0) + 1e-9 >= totalFor(amount, network);
 
 export function CreateCard(p: Props) {
   const { phase, draft: g, kite } = p;
@@ -88,7 +88,7 @@ export function CreateCard(p: Props) {
   else if (amount > GIFT_MAX) cta = <button className="cta off" disabled>Maximum gift is ${GIFT_MAX}</button>;
   else if (!kite.connected) cta = <button className="cta" onClick={p.onConnect}><Brand k="kite" />Connect Kite Passport</button>;
   else if (!canPay(kite, g.network, amount)) {
-    const short = Math.ceil((totalFor(amount) - (kite.balances[g.network] ?? 0)) * 100) / 100;
+    const short = Math.ceil((totalFor(amount, g.network) - (kite.balances[g.network] ?? 0)) * 100) / 100;
     cta = <button className="cta warn" onClick={p.onTopUp}>Add {short.toFixed(2)} {asset.symbol} to Kite to continue</button>;
   }
   else cta = <button className="cta" onClick={p.onCreate}>Create gift</button>;
@@ -192,8 +192,8 @@ export function CreateCard(p: Props) {
       </div>
 
       <div className="details">
-        <span>Total <b className="num">{filled ? usd(totalFor(amount)) : "—"}</b></span>
-        <span className="r">Fee {filled ? usd(feeFor(amount)) : "1.5%"} · paid with Kite</span>
+        <span>Total <b className="num">{filled ? usd(totalFor(amount, g.network)) : "—"}</b></span>
+        <span className="r">Fee {filled ? usd(feeFor(amount, g.network)) : "1.5%"} · paid with Kite</span>
       </div>
       {cta}
       {p.error && <p className="err-line">{p.error}</p>}

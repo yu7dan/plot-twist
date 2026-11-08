@@ -94,7 +94,7 @@ export function CreateFlow() {
     const b = kite.balances[draft.network] ?? 0;
     // Largest gift whose amount + fee still fits the balance.
     let a = Math.floor((b - 1) * 100) / 100;
-    while (a > 0 && a + feeFor(a) > b + 1e-9) a = Math.round((a - 0.01) * 100) / 100;
+    while (a > 0 && a + feeFor(a, draft.network) > b + 1e-9) a = Math.round((a - 0.01) * 100) / 100;
     setDraft((g) => ({ ...g, amountStr: String(Math.max(0, a)) }));
   }
 

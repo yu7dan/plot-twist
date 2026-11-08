@@ -46,8 +46,8 @@ export function ReviewModal({ draft: g, busy, error, onClose, onApprove }: { dra
       <div className="modal">
         <div className="m-h"><span>Review gift</span><button className="x" onClick={onClose} disabled={busy}>{I.x}</button></div>
         <div className="lbl">You send</div>
-        <div className="amt-lg num">{usd(totalFor(amount))}</div>
-        <div className="sub">{usd(amount)} gift + {usd(feeFor(amount))} fee · {net.asset.symbol} from your Kite wallet</div>
+        <div className="amt-lg num">{usd(totalFor(amount, g.network))}</div>
+        <div className="sub">{usd(amount)} gift + {usd(feeFor(amount, g.network))} fee · {net.asset.symbol} from your Kite wallet</div>
         <div className="m-block">
           <div className="asset"><TokenImg sym={net.asset.symbol} /><div className="meta"><b className="num">{amount.toFixed(2)} {net.asset.symbol}</b><span>{net.asset.name} · on {net.name}</span></div><span className="usd num">{usd(amount)}</span></div>
         </div>
@@ -78,7 +78,7 @@ export function ApproveModal({ draft: g, approvalUrl, failed, onClose, onRetry }
         </div>
         <h4>Approve transfer</h4>
         <p className="req">Approve it with your passkey on Kite Passport. This page updates by itself.</p>
-        <div className="kite-amt num">{totalFor(amount).toFixed(2)}<small>{net.asset.symbol}</small></div>
+        <div className="kite-amt num">{totalFor(amount, g.network).toFixed(2)}<small>{net.asset.symbol}</small></div>
         <div className="kite-box">
           <div className="kv"><span>Network</span><b><ChainImg id={g.network} />{net.name}</b></div>
           <div className="kv"><span>To</span><b>Plot Twist</b></div>
@@ -109,7 +109,7 @@ export function SealingModal({ draft: g, steps, txHash, code }: { draft: Draft; 
   const short = (h?: string) => (h ? `${h.slice(0, 6)}…${h.slice(-4)}` : "");
   const rows: [string, string][] = [
     ["Transfer approved in Kite Passport", "passkey"],
-    [`${totalFor(amount).toFixed(2)} ${net.asset.symbol} received on ${net.name}`, short(txHash)],
+    [`${totalFor(amount, g.network).toFixed(2)} ${net.asset.symbol} received on ${net.name}`, short(txHash)],
     [`${amount.toFixed(2)} ${net.asset.symbol} reserved for ${g.recipientName}`, "Plot Twist"],
     ["Gift sealed · link created", code],
   ];

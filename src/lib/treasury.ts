@@ -95,6 +95,25 @@ export async function verifyIncoming(id: NetworkId, txHash: string, amount: stri
 /* ---------- outgoing: pay the recipient ---------- */
 
 /**
+ * Why a pasted payout address would lose the money, or null if it looks fine. Pasted addresses aren't
+ * signed for, so catch the costly mistakes: our own address, the token contract, or a Solana token
+ * account (we'd create a token account owned by a token account, which nobody can spend from).
+ */
+export async function payoutAddressProblem(id: NetworkId, address: string): Promise<string | null> {
+  const net = NETWORKS[id];
+  if (net.kind === "solana") {
+    if (address === platformAddress(id) || address === net.asset.address) return "That address can't receive this gift";
+    const info = await new Connection(SOLANA_RPC, "confirmed").getAccountInfo(new PublicKey(address));
+    const tokenPrograms = ["TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"];
+    if (info && tokenPrograms.includes(info.owner.toBase58())) return "That's a token account. Paste your wallet address instead";
+    return null;
+  }
+  const a = getAddress(address);
+  if (a === getAddress(platformAddress(id)) || a === getAddress(net.asset.address) || /^0x0{40}$/i.test(a)) return "That address can't receive this gift";
+  return null;
+}
+
+/**
  * A broadcast payout. Saved on the gift right away so a timeout or crash can never lead to paying twice:
  * the gift stays "claiming"/"reclaiming" until `payoutStatus` settles it.
  */
