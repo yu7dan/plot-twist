@@ -54,6 +54,12 @@ function fileCollection<T extends object>(name: string) {
         await writeAll(name, all);
         return value;
       }),
+    putMany: (entries: Record<string, T>) =>
+      enqueue(async () => {
+        const all = await readAll<T>(name);
+        Object.assign(all, entries);
+        await writeAll(name, all);
+      }),
     update: (id: string, fn: (cur: T) => T | null) =>
       enqueue(async () => {
         const all = await readAll<T>(name);
@@ -91,6 +97,9 @@ function redisCollection<T extends object>(name: string) {
       await db().hset(k, { [id]: JSON.stringify(value) });
       return value;
     },
+    putMany: async (entries: Record<string, T>) => {
+      if (Object.keys(entries).length) await db().hset(k, Object.fromEntries(Object.entries(entries).map(([id, v]) => [id, JSON.stringify(v)])));
+    },
     update: async (id: string, fn: (cur: T) => T | null): Promise<T | null> => {
       for (let attempt = 0; attempt < 40; attempt++) {
         const raw = await db().hget<string>(k, id);
@@ -117,6 +126,8 @@ export function collection<T extends object>(name: string) {
     get: (id: string) => (redis() ? shared : local).get(id),
     all: () => (redis() ? shared : local).all(),
     put: (id: string, value: T) => (redis() ? shared : local).put(id, value),
+    /** Writes many new records in one go (no compare-and-set: only for records nobody else can touch yet). */
+    putMany: (entries: Record<string, T>) => (redis() ? shared : local).putMany(entries),
     update: (id: string, fn: (cur: T) => T | null) => (redis() ? shared : local).update(id, fn),
     remove: (id: string) => (redis() ? shared : local).remove(id),
   };

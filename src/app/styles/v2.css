@@ -228,3 +228,81 @@ button.v-tok:hover { background: var(--s2); }
 /* Network picker opened from the panel's token button: a centered sheet, like a token selector. */
 .app .netmenu.centered { position: fixed; top: 50%; left: 50%; right: auto; transform: translate(-50%, -50%); width: 380px; max-width: calc(100vw - 24px); animation: fade .18s both; }
 .app .menu-scrim { background: var(--scrim); }
+
+/* Drop table inside the panel */
+.v-clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.v-title-in { width: 200px; max-width: 46vw; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-weight: 600; border-bottom: 1px dashed var(--line2); }
+.v-rw { align-items: flex-start; border-top: 1px solid var(--line); }
+.v-rw:first-child { border-top: 0; }
+.v-rw .av { margin-top: 1px; }
+.v-rw .v-who { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
+.v-rw .nt { font-size: 13px; line-height: 1.45; color: var(--muted); cursor: text; }
+.v-rw .nt:hover { color: var(--soft); }
+.v-rw textarea { width: 100%; border: 1px solid var(--line2); border-radius: 8px; outline: 0; resize: none; padding: 4px 6px; background: var(--s2); color: var(--text); font: inherit; font-size: 13px; line-height: 1.45; }
+.v-rw .am { display: inline-flex; align-items: baseline; margin-left: 0; color: var(--soft); font-weight: 600; }
+.v-rw .am input { width: 52px; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; text-align: right; border-bottom: 1px dashed var(--line2); }
+.v-rw .rm { width: 22px; height: 22px; flex-shrink: 0; border-radius: 7px; display: grid; place-items: center; color: var(--dim); }
+.v-rw .rm:hover { color: var(--warn); background: var(--s2); }
+.v-rw .rm svg { width: 12px; height: 12px; }
+button.v-rw.more { width: 100%; text-align: left; border-top: 1px solid var(--line); }
+button.v-rw.more:hover { color: var(--text); }
+
+/* ---------- pages under the app (Drop, Docs…) ---------- */
+.v-page { position: relative; z-index: 1; width: 760px; max-width: calc(100% - 24px); margin: 24px auto 80px; }
+.v-back { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+.v-back:hover { color: var(--text); }
+.v-back svg { width: 14px; height: 14px; }
+.v-card { padding: 20px; border-radius: 24px; background: var(--s1); border: 1px solid var(--line2); }
+.v-card + .v-card { margin-top: 10px; }
+.v-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 40px 20px; text-align: center; color: var(--muted); }
+.v-empty .mascot { width: 84px; }
+.v-empty .v-cta { width: auto; padding: 0 24px; height: 50px; font-size: 16px; }
+.v-banner { display: flex; gap: 14px; align-items: center; padding: 16px 18px; margin-bottom: 10px; border-radius: 20px; background: var(--accent-soft); }
+.v-banner .mascot { width: 56px; flex-shrink: 0; }
+.v-banner b { font-size: 16px; }
+.v-banner p { font-size: 14px; color: var(--soft); margin-top: 2px; line-height: 1.5; }
+.v-dh { display: flex; align-items: center; gap: 14px; }
+.v-dh h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+.v-dh p { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); margin-top: 3px; }
+.v-dh p .ci { width: 16px; height: 16px; }
+.v-dh-r { margin-left: auto; text-align: right; }
+.v-dh-r b { display: block; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+.v-dh-r small { font-size: 12.5px; color: var(--muted); }
+.v-wait { margin-top: 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--s2); font-size: 14px; color: var(--soft); }
+.v-wait a { color: var(--accent-text); font-weight: 600; display: inline-flex; gap: 4px; align-items: center; }
+.v-wait a svg { width: 12px; height: 12px; }
+.v-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+.v-stats div { padding: 12px 14px; border-radius: 16px; background: var(--s2); display: flex; flex-direction: column; gap: 2px; }
+.v-stats small { font-size: 12.5px; color: var(--muted); }
+.v-stats b { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.v-stats span, .v-stats a { font-size: 12.5px; color: var(--muted); }
+.v-stats a { color: var(--accent-text); display: inline-flex; gap: 4px; align-items: center; }
+.v-stats a svg { width: 11px; height: 11px; }
+.v-progress { height: 6px; margin-top: 14px; border-radius: 6px; background: var(--s3); overflow: hidden; }
+.v-progress i { display: block; height: 100%; border-radius: 6px; background: var(--drop); transition: width .4s; }
+.v-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.v-btn { height: 38px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; background: var(--s2); color: var(--soft); border: 1px solid var(--line); }
+.v-btn:hover { color: var(--text); border-color: var(--line2); }
+.v-btn svg { width: 14px; height: 14px; }
+.v-btn .spin { width: 14px; height: 14px; }
+.v-btn.warn { color: var(--warn); }
+.v-list { padding: 6px 12px; }
+.v-li { display: flex; align-items: flex-start; gap: 12px; padding: 12px 4px; border-top: 1px solid var(--line); }
+.v-li:first-child { border-top: 0; }
+.v-li .av { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; background: var(--s3); color: var(--soft); }
+.v-li .v-who { flex: 1; min-width: 0; }
+.v-li .v-who b { font-size: 15px; font-weight: 600; }
+.v-li .v-who small { margin-left: 8px; font-size: 12.5px; color: var(--dim); }
+.v-li .v-who p { font-size: 13px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+.v-li .am { font-weight: 600; color: var(--soft); padding-top: 3px; }
+.v-st { flex-shrink: 0; margin-top: 2px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.v-st.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.v-st.wait { color: var(--muted); background: var(--s2); }
+.v-st.back { color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.v-li .v-mini { margin-top: 1px; }
+@media (max-width: 640px) {
+  .v-dh { flex-wrap: wrap; }
+  .v-dh-r { margin-left: 0; text-align: left; width: 100%; }
+  .v-stats { grid-template-columns: 1fr; }
+  .v-li { flex-wrap: wrap; }
+}

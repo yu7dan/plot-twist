@@ -6,9 +6,20 @@ import { feeFor, money, totalFor } from "./pricing";
 import { collection, newId } from "./store";
 import { sameAddress, validAddress, verifySignature } from "./signatures";
 import { payoutAddressProblem, payoutStatus, platformAddress, sendPayout, settlePayout, verifyIncoming, type SentPayout } from "./treasury";
-import { claimMessage, type ExpiryHours, type Gift, type GiftDesign } from "./types";
+import { claimMessage, type Drop, type ExpiryHours, type Gift, type GiftDesign } from "./types";
 
 const gifts = collection<Gift>("gifts");
+const drops = collection<Drop>("drops");
+
+/** One on-chain transfer can only ever pay for one gift or one Drop. */
+export async function transferUsed(txHash: string, self: { code?: string; dropId?: string }) {
+  const h = txHash.toLowerCase();
+  const [allGifts, allDrops] = await Promise.all([gifts.all(), drops.all()]);
+  return (
+    allGifts.some((g) => g.payment.txHash?.toLowerCase() === h && g.code !== self.code && !(self.dropId && g.dropId === self.dropId)) ||
+    allDrops.some((d) => d.payment.txHash?.toLowerCase() === h && d.id !== self.dropId)
+  );
+}
 
 const newestFirst = (a: Gift, b: Gift) => b.createdAt.localeCompare(a.createdAt);
 
@@ -57,7 +68,8 @@ export async function createGift(jwt: string, ownerId: string, p: GiftDesign & {
 
 /** Polls Kite for the transfer; once it executed, checks it on-chain and seals the gift. */
 export async function refreshPayment(jwt: string, gift: Gift): Promise<Gift> {
-  if (gift.status !== "awaiting_payment") return gift;
+  // A Drop's gifts are paid by the Drop's single transfer (see drops.ts).
+  if (gift.status !== "awaiting_payment" || gift.dropId) return gift;
   const fail = async (patch: Partial<Gift["payment"]>) =>
     (await gifts.update(gift.code, (g) => (g.status === "awaiting_payment" ? { ...g, status: "payment_failed", payment: { ...g.payment, ...patch } } : null))) ??
     (await gifts.get(gift.code))!;
@@ -67,10 +79,7 @@ export async function refreshPayment(jwt: string, gift: Gift): Promise<Gift> {
   if (s.state !== "completed" || !s.txHash) return gift;
   const txHash = s.txHash;
 
-  // One on-chain transfer can only ever seal one gift.
-  if ((await gifts.all()).some((g) => g.code !== gift.code && g.payment.txHash && g.payment.txHash.toLowerCase() === txHash.toLowerCase())) {
-    return fail({ txHash, error: "This transfer was already used" });
-  }
+  if (await transferUsed(txHash, { code: gift.code })) return fail({ txHash, error: "This transfer was already used" });
   const from = (await me(jwt)).wallets.find((w) => w.chain === gift.network)?.address;
   if (!from) return fail({ txHash, error: "No Kite wallet on this network" });
   const check = await verifyIncoming(gift.network, txHash, money(Number(gift.amount) + Number(gift.fee)), from);
@@ -98,21 +107,22 @@ type PayoutKind = "claim" | "reclaim";
  * Settles a gift whose payout was broadcast but not yet confirmed (e.g. after a timeout or restart).
  * It only goes back to "sealed" when the transfer provably can't land — never paid twice.
  */
-async function reconcile(g: Gift): Promise<Gift> {
+export async function reconcile(g: Gift): Promise<Gift> {
   const kind: PayoutKind | null = g.status === "claiming" ? "claim" : g.status === "reclaiming" ? "reclaim" : null;
   if (!kind) return g;
   const sent = kind === "claim" ? g.claim?.sent : g.reclaim?.sent;
   if (!sent) {
-    // Locked but never broadcast (the process died in between): safe to reopen after a minute.
+    // Locked but never broadcast (the process died in between): safe to reopen once no live request
+    // could still be about to broadcast it — sends wait at most ~40s for the network's send lock.
     const lockedAt = (kind === "claim" ? g.claim?.lockedAt : g.reclaim?.lockedAt) ?? g.createdAt;
-    if (Date.now() - new Date(lockedAt).getTime() < 60_000) return g;
+    if (Date.now() - new Date(lockedAt).getTime() < 5 * 60_000) return g;
     return (await gifts.update(g.code, (x) => (x.status === g.status && !(kind === "claim" ? x.claim?.sent : x.reclaim?.sent) ? { ...x, status: "sealed", claim: kind === "claim" ? undefined : x.claim, reclaim: kind === "reclaim" ? undefined : x.reclaim } : null))) ?? g;
   }
   const st = await payoutStatus(g.network, sent).catch(() => "pending" as const);
   return finish(g.code, kind, st);
 }
 
-async function finish(code: string, kind: PayoutKind, st: "success" | "failed" | "pending"): Promise<Gift> {
+export async function finish(code: string, kind: PayoutKind, st: "success" | "failed" | "pending"): Promise<Gift> {
   const busy = kind === "claim" ? "claiming" : "reclaiming";
   if (st === "pending") return (await gifts.get(code))!;
   const now = new Date().toISOString();
