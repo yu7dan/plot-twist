@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  <a href="https://plot-twist-zeta.vercel.app"><b>▶ Try it live — plot-twist-zeta.vercel.app</b></a>
+</p>
+
+<p align="center">
   <img src="docs/images/badges/hackathon.svg" alt="SERV Hackathon 02 · Kite track" />
   <img src="docs/images/badges/serv.svg" alt="AI: SERV Reasoning" />
   <img src="docs/images/badges/kite.svg" alt="Payments: Kite Passport" />
