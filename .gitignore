@@ -48,3 +48,6 @@ next-env.d.ts
 
 # private notes (full roadmap incl. business ideas)
 docs/*.private.md
+
+.vercel
+.env*

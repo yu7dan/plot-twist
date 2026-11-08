@@ -6,7 +6,7 @@ import { CHAIN_UI, WALLETS, type WalletKey } from "@/lib/ui-assets";
 import { connectWallet, NoWallet } from "../claim/wallets";
 import { I } from "../ui/icons";
 import { Brand, TokenImg } from "../ui/marks";
-import { flash, useMobile } from "../ui/screen";
+import { useMobile } from "../ui/screen";
 import type { Kite } from "../use-kite";
 import { NetworkPicker } from "./network-picker";
 

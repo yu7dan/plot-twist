@@ -1,4 +1,5 @@
 import "server-only";
+import crypto from "crypto";
 import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
@@ -19,6 +20,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { NETWORKS, type NetworkId } from "./chains";
+import { key, redis, sleep } from "./redis";
 
 /**
  * Platform wallets. Each gift is paid into the platform address on its network
@@ -99,12 +101,33 @@ export async function verifyIncoming(id: NetworkId, txHash: string, amount: stri
 export interface SentPayout { hash: string; sentAt: string; nonce?: number; lastValidBlockHeight?: number }
 
 // One send at a time per network, so concurrent payouts never reuse an EVM nonce.
+// Production: a Redis lock shared by every instance. Local dev: an in-process queue.
 const g = globalThis as unknown as { __ptSendLocks?: Map<NetworkId, Promise<unknown>> };
 const locks = (g.__ptSendLocks ??= new Map());
-function serial<T>(id: NetworkId, fn: () => Promise<T>): Promise<T> {
+function serialLocal<T>(id: NetworkId, fn: () => Promise<T>): Promise<T> {
   const next = (locks.get(id) ?? Promise.resolve()).then(fn, fn);
   locks.set(id, next.catch(() => undefined));
   return next;
+}
+
+const UNLOCK = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) end return 0`;
+
+async function serial<T>(id: NetworkId, fn: () => Promise<T>): Promise<T> {
+  const db = redis();
+  if (!db) return serialLocal(id, fn);
+  const k = key("lock", "send", id);
+  const token = crypto.randomUUID();
+  const until = Date.now() + 40_000;
+  // The TTL only matters if an instance dies mid-send; a send takes a few seconds.
+  while ((await db.set(k, token, { nx: true, px: 30_000 })) !== "OK") {
+    if (Date.now() > until) throw new Error(`payouts on ${id} are busy`); // nothing was broadcast
+    await sleep(250);
+  }
+  try {
+    return await fn();
+  } finally {
+    await db.eval(UNLOCK, [k], [token]).catch(() => undefined);
+  }
 }
 
 /** Signs and broadcasts; throws only if nothing was broadcast. */
@@ -165,7 +188,7 @@ export async function settlePayout(id: NetworkId, p: SentPayout, waitMs = 45_000
   for (;;) {
     const st = await payoutStatus(id, p).catch(() => "pending" as const);
     if (st !== "pending" || Date.now() > until) return st;
-    await new Promise((r) => setTimeout(r, 2500));
+    await sleep(2500);
   }
 }
 
