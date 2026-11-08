@@ -9,6 +9,7 @@ import { EXPIRY_LABEL } from "../ui/time";
 import type { KiteState } from "../use-kite";
 
 export const EXAMPLE_PROMPT = "Birthday gift for my sister Maya, around $50 — she just moved to Berlin.";
+const QUICK = [["Birthday", "Birthday gift for my sister Maya, around $50 — she just moved to Berlin."], ["Red packet 红包", "Lunar New Year red packet for my nephew Leo, $28 for luck."], ["Thank you", "Thank-you gift for my mentor Sam, $40 — he helped me land my first job."]] as const;
 
 export interface Draft {
   recipientName: string;
@@ -49,6 +50,7 @@ interface Props {
 
 export const canPay = (kite: KiteState, network: NetworkId, amount: number) => (kite.balances[network] ?? 0) + 1e-9 >= totalFor(amount, network);
 
+/** The Gift panel: describe it → SERV designs it → what they receive → send with Kite. */
 export function CreateCard(p: Props) {
   const { phase, draft: g, kite } = p;
   const filled = phase === "filled";
@@ -57,62 +59,55 @@ export function CreateCard(p: Props) {
   const net = NETWORKS[g.network];
   const asset = net.asset;
   const amount = Number(g.amountStr) || 0;
-  const skel = (w: number) => <span className="skel" style={{ width: w }} />;
+  const skel = (w: number, h?: number) => <span className="skel" style={{ width: w, height: h }} />;
   const ready = p.prompt.trim().length >= 8;
 
-  /** One list row: SERV's value, editable in place once the gift is designed. */
-  const row = (field: EditField, label: string, w: number, placeholder: string, show = (v: string) => v) => {
+  /** A value SERV filled in, editable in place. */
+  const editable = (field: EditField, className: string, show = (v: string) => v) => {
     const v = g[field];
     const done = () => v.trim() && p.onEdit(null);
-    return (
-      <div className={`li${field === "note" ? " note" : ""}`}>
-        <span>{label}</span>
-        {filled && p.editing === field ? (
-          <input className="note-in" autoFocus maxLength={MAX[field]} value={v} onChange={(e) => p.onDraft({ [field]: e.target.value })} onKeyDown={(e) => e.key === "Enter" && done()} onBlur={done} />
-        ) : filled ? <b className={`${fi.trim()} editable`} onClick={() => p.onEdit(field)}>{show(v)}</b> : gen ? <b>{skel(w)}</b> : <b className="ph">{placeholder}</b>}
-        {filled ? (
-          p.editing === field
-            ? <button className="note-ok" onMouseDown={(e) => e.preventDefault()} onClick={done}>{I.checkSm}</button>
-            : <button className="note-edit" onClick={() => p.onEdit(field)}>{I.edit}</button>
-        ) : field === "note" ? I.edit : null}
-      </div>
-    );
+    if (p.editing === field)
+      return field === "note"
+        ? <textarea autoFocus rows={2} maxLength={MAX.note} value={v} onChange={(e) => p.onDraft({ note: e.target.value })} onBlur={done} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), done())} />
+        : <span className={className}><input autoFocus maxLength={MAX[field]} value={v} onChange={(e) => p.onDraft({ [field]: e.target.value })} onBlur={done} onKeyDown={(e) => e.key === "Enter" && done()} /></span>;
+    return field === "note"
+      ? <p className={fi.trim()} onClick={() => p.onEdit(field)}>{show(v)}</p>
+      : <span className={`${className}${fi}`} title="Edit" onClick={() => p.onEdit(field)}>{show(v)}</span>;
   };
 
   let cta;
   if (phase === "empty") cta = ready
-    ? <button className="cta" onClick={p.onDesign}>{I.spark}Design gift</button>
-    : <button className="cta off" disabled>Describe your gift</button>;
-  else if (gen) cta = <button className="cta off" disabled><span className="spin" />Designing your gift</button>;
-  else if (amount < GIFT_MIN) cta = <button className="cta off" disabled>Minimum gift is ${GIFT_MIN}</button>;
-  else if (amount > GIFT_MAX) cta = <button className="cta off" disabled>Maximum gift is ${GIFT_MAX}</button>;
-  else if (!kite.connected) cta = <button className="cta" onClick={p.onConnect}><Brand k="kite" />Connect Kite Passport</button>;
+    ? <button className="v-cta" onClick={p.onDesign}>{I.spark}Design gift</button>
+    : <button className="v-cta soft" onClick={() => p.onPrompt(EXAMPLE_PROMPT)}>{I.spark}Try an example</button>;
+  else if (gen) cta = <button className="v-cta off" disabled><span className="spin" />SERV is designing your gift</button>;
+  else if (amount < GIFT_MIN) cta = <button className="v-cta off" disabled>Minimum gift is ${GIFT_MIN}</button>;
+  else if (amount > GIFT_MAX) cta = <button className="v-cta off" disabled>Maximum gift is ${GIFT_MAX}</button>;
+  else if (!kite.connected) cta = <button className="v-cta" onClick={p.onConnect}><Brand k="kite" />Connect Kite to send</button>;
   else if (!canPay(kite, g.network, amount)) {
     const short = Math.ceil((totalFor(amount, g.network) - (kite.balances[g.network] ?? 0)) * 100) / 100;
-    cta = <button className="cta warn" onClick={p.onTopUp}>Add {short.toFixed(2)} {asset.symbol} to Kite to continue</button>;
+    cta = <button className="v-cta warn" onClick={p.onTopUp}>Add {short.toFixed(2)} {asset.symbol} to Kite to continue</button>;
   }
-  else cta = <button className="cta" onClick={p.onCreate}>Create gift</button>;
+  else cta = <button className="v-cta" onClick={p.onCreate}><Brand k="kite" />Send with Kite</button>;
 
   return (
-    <div className="card">
-      <div className="mod prompt" onClick={() => filled && p.onEditPrompt()}>
-        <div className="mod-h">
-          <span className="lbl">{I.spark}Describe the gift</span>
+    <div className="v-gift">
+      <div className="v-mod" onClick={() => filled && !p.editing && p.onEditPrompt()}>
+        <div className="v-lbl">
+          <span>Describe the gift</span>
           {filled ? (
-            <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              <span className={`tag${fi}`}>{I.spark}Designed by SERV</span>
-              <button className="mini icon" title="Rewrite note" disabled={p.noteBusy} onClick={(e) => { e.stopPropagation(); p.onRewrite(); }}>
+            <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <span className={`v-serv${fi}`}>{I.spark}Designed by SERV</span>
+              <button className="v-mini" title="Rewrite the note" disabled={p.noteBusy} onClick={(e) => { e.stopPropagation(); p.onRewrite(); }}>
                 {p.noteBusy ? <span className="spin" style={{ width: 12, height: 12 }} /> : I.refresh}
               </button>
             </span>
-          ) : gen ? <span className="lbl" style={{ color: "var(--muted)" }}><Mascot className="bob" />Designing</span> : null}
+          ) : gen ? <span className="v-serv muted"><Mascot />Designing</span> : null}
         </div>
         {phase === "empty" ? (
           <>
             <textarea
-              className="prompt-input"
+              className="v-prompt"
               rows={2}
-              autoFocus
               maxLength={400}
               placeholder="Who’s it for, what’s the occasion, how much?"
               value={p.prompt}
@@ -121,79 +116,50 @@ export function CreateCard(p: Props) {
                 if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (ready) p.onDesign(); }
               }}
             />
-            {!p.prompt && <button className="ex" onClick={() => p.onPrompt(EXAMPLE_PROMPT)}>{I.spark}Try an example</button>}
+            {!p.prompt && <div className="v-chips">{QUICK.map(([l, t]) => <button key={l} className="v-chip" onClick={() => p.onPrompt(t)}>{l}</button>)}</div>}
           </>
-        ) : <p className="prompt-text">{p.prompt}</p>}
+        ) : <p className="v-prompt-text" title="Edit the description">{p.prompt}</p>}
       </div>
 
-      <div className="mod">
-        <div className="lbl">You send</div>
-        <div className="row-amt">
-          {filled ? (
-            <label className={`amt-wrap${fi}`}>
-              <span className="amt num">$</span>
-              <input className="amt num amt-in" inputMode="decimal" value={g.amountStr} onChange={(e) => p.onDraft({ amountStr: e.target.value.replace(/[^0-9.]/g, "").slice(0, 7) })} />
-            </label>
-          ) : gen ? skel(120) : <span className="amt num ph">$0</span>}
-          <span className="token"><TokenImg sym={asset.symbol} />{asset.symbol}</span>
-        </div>
-        <div className="row-sub">
-          {kite.connected ? (
-            <>
-              <span className="num">from Kite · {net.name}</span>
-              <span className="num">Balance {(kite.balances[g.network] ?? 0).toFixed(2)}{filled && <b className="max" onClick={p.onMax}>Max</b>}</span>
-            </>
-          ) : (
-            <>
-              <span className="num">from Kite Passport</span>
-              <b className="max" onClick={p.onConnect}>Connect to see balance</b>
-            </>
-          )}
-        </div>
-      </div>
+      <div className={`v-link${gen ? " busy" : ""}`}><span>{I.spark}</span></div>
 
-      <div className="swap-arrow"><div>{I.down}</div></div>
-
-      <div className="mod">
-        <div className="mod-h"><span className="lbl">{filled ? `${g.recipientName} receives` : "They receive"}</span><span className="tag ghost">Gas covered</span></div>
-        <div style={{ marginTop: 8 }}>
-          {filled ? (
-            <>
-              <div className={`rcv${fi}`}>
-                <TokenImg sym={asset.symbol} />
-                <div className="meta"><b className="num">{amount.toFixed(2)} {asset.symbol}</b><span>{asset.name} · 1 {asset.symbol} ≈ $1</span></div>
-                <button className="chain-sel" onClick={p.onNetwork}><ChainImg id={g.network} /><span>{net.name}</span>{I.chev}</button>
-              </div>
-              {net.isNew && <div className="hint-line">{I.lock}{net.name} is a newer network — {g.recipientName}’s wallet may ask to add it once.</div>}
-              {g.insight && <div className={`insight${fi}`}>{I.spark}<span>{g.insight}</span></div>}
-            </>
-          ) : (
-            <div className="rcv">
-              <TokenImg sym={asset.symbol} />
-              <div className="meta">{gen ? skel(140) : <b className="num" style={{ color: "var(--dim)" }}>0.00 {asset.symbol}</b>}</div>
-              <span className="chain-sel ro"><ChainImg id={g.network} /><span>{net.name}</span></span>
+      <div className="v-mod out">
+        <div className="v-lbl">
+          <span>{filled ? <>{editable("recipientName", "v-name")} receives</> : "They receive"}</span>
+          {filled ? editable("occasion", "v-chip") : gen ? skel(70, 20) : <span className="v-chip">Gas covered</span>}
+        </div>
+        <div className="v-split">
+          <div style={{ minWidth: 0 }}>
+            {filled ? (
+              <label className={`v-amt num${fi}`}>$<input inputMode="decimal" value={g.amountStr} onChange={(e) => p.onDraft({ amountStr: e.target.value.replace(/[^0-9.]/g, "").slice(0, 7) })} /></label>
+            ) : gen ? <div className="v-big">{skel(140, 34)}</div> : <div className="v-big ph num">$0</div>}
+            <div className="v-sub num">
+              {kite.connected
+                ? <>Kite balance {(kite.balances[g.network] ?? 0).toFixed(2)} {asset.symbol}{filled && <b onClick={p.onMax}>Max</b>}</>
+                : <>{filled ? `${amount.toFixed(2)} ${asset.symbol} on ${net.name}` : `${asset.symbol} on ${net.name}`}</>}
             </div>
-          )}
+          </div>
+          <button className="v-tok" onClick={p.onNetwork} title="Change network">
+            <span className="net"><TokenImg sym={asset.symbol} /><ChainImg id={g.network} /></span>{asset.symbol}{I.chev}
+          </button>
         </div>
+        {filled && (
+          <div className="v-note">
+            {editable("note", "", (v) => `“${v}”`)}
+            {p.editing !== "note" && <button className="v-mini" title="Edit the note" onClick={() => p.onEdit("note")}>{I.edit}</button>}
+          </div>
+        )}
+        {gen && <div className="v-note">{skel(300)}</div>}
+        {filled && net.isNew && <div className="v-hint">{I.lock}<span>{net.name} is a newer network — {g.recipientName}’s wallet may ask to add it once.</span></div>}
+        {filled && g.insight && <div className={`v-hint${fi}`}>{I.spark}<span>{g.insight}</span></div>}
       </div>
 
-      <div className="mod list">
-        {row("recipientName", "To", 60, "—")}
-        {row("occasion", "Occasion", 80, "—")}
-        {row("note", "Note", 200, "Written by AI, or type your own", (v) => `“${v}”`)}
-        <div className="li exp">
+      <div className="v-meta">
+        <span className="num">{filled ? <>You pay <b>{usd(totalFor(amount, g.network))}</b> · fee {usd(feeFor(amount, g.network))}</> : <>Fee 1.5% · gas covered</>}</span>
+        <span className="v-exp">
           <span>Claim within</span>
-          <span className="exp-opts">
-            {EXPIRY_OPTIONS.map((h) => (
-              <button key={h} className={g.expiresIn === h ? "on" : ""} onClick={() => p.onDraft({ expiresIn: h })}>{EXPIRY_LABEL[h].short}</button>
-            ))}
-          </span>
-        </div>
-      </div>
-
-      <div className="details">
-        <span>Total <b className="num">{filled ? usd(totalFor(amount, g.network)) : "—"}</b></span>
-        <span className="r">Fee {filled ? usd(feeFor(amount, g.network)) : "1.5%"} · paid with Kite</span>
+          {EXPIRY_OPTIONS.map((h) => <button key={h} className={g.expiresIn === h ? "on" : ""} onClick={() => p.onDraft({ expiresIn: h })}>{EXPIRY_LABEL[h].short}</button>)}
+        </span>
       </div>
       {cta}
       {p.error && <p className="err-line">{p.error}</p>}

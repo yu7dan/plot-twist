@@ -24,7 +24,7 @@ interface Props {
 const atScreen = (node: ReactNode) => createPortal(node, document.querySelector(".screen.app") ?? document.body);
 
 /** Kite balance pill; once connected it opens a menu to add funds, withdraw or sign out from any page. */
-function KitePill({ kite, onConnect, m }: { kite: Kite; onConnect: () => void; m: boolean }) {
+export function KitePill({ kite, onConnect, m }: { kite: Kite; onConnect: () => void; m: boolean }) {
   const [menu, setMenu] = useState(false);
   const [modal, setModal] = useState<null | "add" | "withdraw">(null);
 

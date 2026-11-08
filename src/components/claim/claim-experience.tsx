@@ -134,7 +134,7 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
           <h3>This gift was taken back</h3>
           <p>It wasn’t claimed in time, so {gift.senderName} took it back. Ask them to send it again.</p>
         </div>
-        <Link className="cta" href="/create">Send your own</Link>
+        <Link className="cta" href="/">Send your own</Link>
       </div>
     );
   } else if (phase === "claimed") {
@@ -152,7 +152,7 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
           </div>
         )}
         {wallet && net.kind === "evm" && <button className="cta white" onClick={() => showInWallet(wallet.key, gift.network)}>Show it in {WALLETS[wallet.key].name}</button>}
-        <Link className="cta" href="/create" style={{ marginTop: 10 }}>Send one back</Link>
+        <Link className="cta" href="/" style={{ marginTop: 10 }}>Send one back</Link>
         <p className="foot">It may take a few seconds to show in your wallet · <Link href="/dashboard" style={{ color: "var(--accent)" }}>Keep it in your Dashboard →</Link></p>
       </div>
     );
@@ -205,7 +205,7 @@ export function ClaimExperience({ gift: initial }: { gift: PublicGift }) {
 
   const right = wallet
     ? <span className="pill"><span className="avatar b" />{!m && short(wallet.address)}</span>
-    : <Link className="btn sm sec" href="/create">Send your own</Link>;
+    : <Link className="btn sm sec" href="/">Send your own</Link>;
 
   return (
     <Screen>

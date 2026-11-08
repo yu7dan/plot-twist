@@ -10,11 +10,11 @@ import { EXPIRY_LABEL } from "../ui/time";
 import type { KiteState } from "../use-kite";
 import { canPay, type Draft } from "./create-card";
 
-export function NetworkMenu({ selected, amount, kite, onPick, onClose }: { selected: NetworkId; amount: number; kite: KiteState; onPick: (id: NetworkId) => void; onClose: () => void }) {
+export function NetworkMenu({ selected, amount, kite, onPick, onClose, centered }: { selected: NetworkId; amount: number; kite: KiteState; onPick: (id: NetworkId) => void; onClose: () => void; centered?: boolean }) {
   return (
     <>
       <div className="menu-scrim" onClick={onClose} />
-      <div className="netmenu">
+      <div className={`netmenu${centered ? " centered" : ""}`}>
         <div className="nm-h">Gift network</div>
         {NETWORK_ORDER.map((id) => {
           const n = NETWORKS[id];

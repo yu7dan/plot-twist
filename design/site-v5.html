@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Plot Twist — site v5 (visual draft)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../src/app/styles/ds.css" />
+<link rel="stylesheet" href="../src/app/styles/ds-v3.css" />
+<link rel="stylesheet" href="../src/app/styles/ds-v4.css" />
+<link rel="stylesheet" href="../src/app/styles/app.css" />
+<link rel="stylesheet" href="site-v5.css" />
+<script src="brand.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<nav class="rbar" id="rbar"></nav>
+<script>
+const A = "../public/assets/";
+const T = A + "tokens/";
+const NETS = [["Base", "chain_base.png"], ["Solana", "chain_sol.png"], ["Polygon", "chain_polygon.png"], ["Avalanche", "chain_avax.png"], ["Arc", "arc_256.png"], ["Tempo", "tempo_touch.png"], ["Robinhood Chain", "rh_152.png"]];
+const kite = `<span class="brand">${BRAND.kite}</span>`;
+const ic = {
+  gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>',
+  drop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  api: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h.01M16 16h.01"/></svg>',
+  chev: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+  right: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  spark: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/></svg>',
+  lock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  ext: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>',
+  back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+};
+const pi = (k, lg) => `<span class="pi ${k}${lg ? " lg" : ""}">${ic[k]}</span>`;
+const logo = `<a class="logo" href="#home"><img src="${A}logo-head.png" alt="" />Plot Twist</a>`;
+const usdc = `<img src="${T}usdc.svg" alt="" style="width:18px;height:18px">`;
+const base = `<img src="${T}chain_base.png" alt="" style="width:16px;height:16px;border-radius:50%">`;
+
+/* ---------- navigation ---------- */
+const PRODUCTS = [
+  ["gift", "Gift", "For friends & family", "Send one person money as a gift link. SERV writes the note, they unwrap it.", "#gift"],
+  ["drop", "Drop", "For teams & communities", "Pay a whole list with one passkey approval. Everyone gets their own link.", "#drop"],
+  ["api", "Agent API", "For developers", "Let your AI agent create gifts and payouts. You stay in control with Kite.", "#agents"],
+];
+const USES = [
+  ["Birthdays & holidays", "A gift with a note and a reveal", "Gift"],
+  ["Red packets 红包", "Lunar New Year, weddings, luck", "Gift"],
+  ["Community rewards", "Thank your top members", "Drop"],
+  ["Bounties & prizes", "Pay winners and contributors", "Drop"],
+  ["Research incentives", "Pay interview and survey participants", "Drop"],
+  ["Agent payouts", "Refunds, tips and errands, run by your agent", "Agent API"],
+];
+function siteNav(open) {
+  return `<header class="snav">
+    <div class="nav-l">${logo}
+      <div class="mi ${open === "products" ? "open" : ""}" data-menu="products"><button>Products ${ic.chev}</button>
+        <div class="mega prod">
+          ${PRODUCTS.map(([k, n, f, d, h]) => `<a class="mo" href="${h}">${pi(k)}<div><b>${n} <span class="for">${f}</span></b><p>${d}</p></div></a>`).join("")}
+          <div class="mega-f">${usdc} USDC on 7 networks · every payment approved on Kite Passport</div>
+        </div>
+      </div>
+      <div class="mi ${open === "uses" ? "open" : ""}" data-menu="uses"><button>Use cases ${ic.chev}</button>
+        <div class="mega uc">${USES.map(([t, d, p]) => `<a class="uo" href="#${p === "Gift" ? "gift" : p === "Drop" ? "drop" : "agents"}"><b>${t}<em>${p}</em></b><span>${d}</span></a>`).join("")}</div>
+      </div>
+      <div class="mi"><a href="#pricing">Pricing</a></div>
+      <div class="mi"><a href="#agents">Developers</a></div>
+    </div>
+    <div class="nav-r"><a class="btn sm sec" href="#dashboard">Sign in</a><a class="btn sm acc" href="#gift-app">Launch app</a></div>
+  </header>`;
+}
+function appNav(tab) {
+  const t = (id, label, href) => `<a class="${tab === id ? "on" : ""}" href="${href}">${label}</a>`;
+  return `<header class="nav anav">
+    <div class="nav-l">${logo}<nav class="tabs">${t("gift", "Gift", "#gift-app")}${t("drop", "Drop", "#drop-new")}${t("dashboard", "Dashboard", "#dashboard")}</nav></div>
+    <div class="nav-r"><span class="pill kite-pill">${kite}Kite · <span class="num">$254.30</span></span></div>
+  </header>`;
+}
+const foot = `<footer class="sfoot"><div class="sfoot-in">
+  <div>${logo}<p>Payment links for people and agents. Paid with Kite Passport, written by SERV.</p></div>
+  <div><h5>Products</h5><a href="#gift">Gift</a><a href="#drop">Drop</a><a href="#agents">Agent API</a></div>
+  <div><h5>Resources</h5><a href="#pricing">Pricing</a><a href="#agents">Developers</a><a>GitHub</a></div>
+  <div><h5>Built with</h5><a>Kite Passport</a><a>SERV Reasoning</a><a>USDC · USDG</a></div>
+</div></footer>`;
+const nets = `<div class="nets">${NETS.map(([n, f]) => `<span><img src="${T}${f}" alt="">${n}</span>`).join("")}</div>`;
+
+/* ---------- reusable visuals ---------- */
+const giftMini = `<div class="vcard">
+  <div class="vcard-h"><span><b>Kai</b> → Maya</span><span class="st ok">Birthday</span></div>
+  <div class="vcard-amt num">$50.00</div>
+  <div class="vcard-sub">${base} 50 USDC on Base · gas covered</div>
+  <div class="vcard-note">“New city, same you. First coffee in Berlin is on me.”</div>
+</div>`;
+const dropMini = `<div class="vcard">
+  <div class="vcard-h"><b>Contributor rewards · Nov</b><span>20 people</span></div>
+  <div class="vbar"><i style="width:90%"></i></div>
+  <div class="vcard-sub">18 of 20 claimed · $600 total</div>
+  <div class="dl">
+    <div class="dr"><span class="av">A</span>alice.eth<span class="vamt num">$40</span><span class="st ok">Claimed</span></div>
+    <div class="dr"><span class="av">B</span>bob<span class="vamt num">$25</span><span class="st ok">Claimed</span></div>
+    <div class="dr"><span class="av">C</span>chen_dev<span class="vamt num">$25</span><span class="st wait">Waiting</span></div>
+  </div>
+</div>`;
+const apiMini = `<div class="term"><div class="term-h"><i></i><i></i><i></i><span>birthday-agent.ts</span></div><pre><span class="c-c">// Your agent remembers Maya's birthday</span>
+<span class="c-k">const</span> gift = <span class="c-k">await</span> plotTwist.gifts.<span class="c-n">create</span>({
+  to: <span class="c-s">"Maya"</span>, amount: <span class="c-n">50</span>, network: <span class="c-s">"base"</span>,
+  brief: <span class="c-s">"Birthday, she just moved to Berlin"</span>,
+});
+<span class="c-c">// → you approve once on Kite with a passkey</span>
+gift.approvalUrl  <span class="c-o">✓ approved · link sent to Maya</span></pre></div>`;
+
+/* ---------- pages ---------- */
+const P = {};
+
+P.home = (open) => `${siteNav(open)}
+<div class="pg land">
+  <div class="l-bg" aria-hidden="true"><i class="au a1"></i><i class="au a2"></i><i class="au a3"></i><div class="l-grid"></div></div>
+  <section class="p-hero">
+    <div>
+      <span class="eyebrow">${kite}Payment links for people and agents · Built on Kite Passport · Powered by SERV</span>
+      <h1>Pay anyone with a link.<br><span class="acc">Make it feel like a gift.</span></h1>
+      <p class="l-p">One person, a whole community, or straight from your AI agent. Describe it in a sentence: SERV writes the message, you approve once with your Kite passkey, and they claim digital dollars with any wallet or exchange address.</p>
+      <div class="cta-row"><a class="btn acc" href="#gift-app">Send a gift ${ic.right}</a><a class="btn sec" href="#drop-new">Start a Drop</a></div>
+      <div class="tagline"><span>${ic.check}No account to claim</span><span>${ic.check}Gas covered</span><span>${ic.check}USDC on 7 networks</span></div>
+    </div>
+    <div class="stack">
+      <div class="st-drop"><span class="st-tag d">Drop</span>${dropMini}</div>
+      <div class="st-gift"><span class="st-tag g">Gift</span>${giftMini}</div>
+      <div class="st-api"><span class="st-tag a">Agent API</span>${apiMini}</div>
+    </div>
+  </section>
+
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">Three ways to send</span>
+    <h2>Pick how many people — and who presses send.</h2>
+    <div class="trio">
+      <a class="pc" href="#gift">${pi("gift", 1)}<h3>Gift <small>one person</small></h3><p class="one">A gift link for someone you care about.</p>
+        <ul><li>${ic.check}SERV designs it from one sentence and writes the note</li><li>${ic.check}Sealed until they reveal it</li><li>${ic.check}Take it back if it isn’t claimed</li></ul>
+        <div class="vex"><small>Example</small>“Birthday gift for my sister Maya, about $50.”</div><span class="go">Explore Gift ${ic.right}</span></a>
+      <a class="pc" href="#drop">${pi("drop", 1)}<h3>Drop <small>a whole list</small></h3><p class="one">Pay many people in one approval.</p>
+        <ul><li>${ic.check}Paste a list or describe it — SERV builds the table</li><li>${ic.check}A personal note and link for each person</li><li>${ic.check}Track who claimed; take back the rest</li></ul>
+        <div class="vex"><small>Example</small>“$25 to each of our 20 top contributors this month.”</div><span class="go">Explore Drop ${ic.right}</span></a>
+      <a class="pc" href="#agents">${pi("api", 1)}<h3>Agent API <small>your AI agent</small></h3><p class="one">Your agent prepares gifts and payouts for you.</p>
+        <ul><li>${ic.check}One API call creates a Gift or a Drop</li><li>${ic.check}You approve with a Kite passkey — the agent never holds your money</li><li>${ic.check}Works with any agent framework</li></ul>
+        <div class="vex"><small>Example</small>A birthday agent that never forgets — and asks you first.</div><span class="go">Read the docs ${ic.right}</span></a>
+    </div>
+  </div></section>
+
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">How it works</span>
+    <h2>Describe it. Approve once. They claim.</h2>
+    <div class="vsteps">
+      <div class="vstep"><span class="vn">01</span><b>Describe it</b><p>A sentence, a pasted list, or an API call. SERV works out who, how much and the occasion, and writes every note.</p><div class="ui">${ic.spark}<span>Designed by SERV</span></div></div>
+      <div class="vstep"><span class="vn">02</span><b>Approve once with Kite</b><p>Kite Passport shows the exact total. One passkey tap pays for one gift or a whole Drop. We never hold your keys.</p><div class="ui">${kite}<span>One tap · exact amount</span></div></div>
+      <div class="vstep"><span class="vn">03</span><b>They claim</b><p>Each person opens their link and claims to a wallet or pastes an exchange address. No sign-up, no gas.</p><div class="ui">${usdc}<span>Claimed in seconds</span></div></div>
+    </div>
+  </div></section>
+
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">Use cases</span>
+    <h2>From one birthday to a thousand payouts.</h2>
+    <div class="ucg">${USES.map(([t, d, p]) => `<div class="ucc"><b>${t}</b><p>${d}</p><span class="vvia ${p === "Gift" ? "g" : p === "Drop" ? "d" : "a"}">${pi(p === "Gift" ? "gift" : p === "Drop" ? "drop" : "api").replace('class="pi', 'style="width:20px;height:20px;border-radius:6px" class="pi')}${p}</span></div>`).join("")}</div>
+  </div></section>
+
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">Safe by design</span>
+    <h2>The AI writes. You approve. The chain proves it.</h2>
+    <div class="trust">
+      <div><b>${kite}Passkey on every payment</b><p>Nothing moves until you approve the exact total on Kite.</p></div>
+      <div><b>${ic.lock}Verified on-chain</b><p>Every payment and claim is a public transaction.</p></div>
+      <div><b>${ic.back}Take it back</b><p>Unclaimed after the window you chose? It comes back to you.</p></div>
+      <div><b>${ic.check}Stable value</b><p>USDC and USDG are dollar stablecoins. $50 stays $50.</p></div>
+    </div>
+    ${nets}
+  </div></section>
+
+  <section class="l-end"><img class="end-m" src="${A}m-surprise.png" alt=""><h2>Who are you paying today?</h2><div class="cta-row" style="justify-content:center;display:flex;gap:10px;margin-top:24px"><a class="btn acc" href="#gift-app">Send a gift ${ic.right}</a><a class="btn sec" href="#drop-new">Start a Drop</a></div></section>
+</div>${foot}`;
+
+P.gift = () => `${siteNav()}
+<div class="pg">
+  <section class="p-hero">
+    <div>
+      <span class="crumb">${pi("gift")}Plot Twist Gift</span>
+      <h1>Every gift deserves<br><span class="acc">a plot twist.</span></h1>
+      <p class="l-p">Tell us who it’s for in one sentence. SERV designs the gift and writes the note, you approve it with your Kite passkey, and they unwrap it from a single link.</p>
+      <div class="cta-row"><a class="btn acc" href="#gift-app">Create a gift ${ic.right}</a><a class="btn sec" href="#gift-app">Try the example</a></div>
+      <div class="tagline"><span>${ic.check}Sealed until revealed</span><span>${ic.check}Recipient asks SERV anything</span><span>${ic.check}Claim window 24h–30d</span></div>
+    </div>
+    <div style="display:flex;justify-content:center;position:relative"><img src="${A}m-secret.png" alt="" style="position:absolute;width:110px;top:-96px;right:24px;z-index:2"><div style="width:340px">${giftMini}</div></div>
+  </section>
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">Made for moments</span><h2>Every occasion, its own twist.</h2>
+    <div class="ucg">${[["Birthday", "Fifty dollars and a note they’ll keep."], ["Lunar New Year 红包", "Lucky red packets, unwrapped from a link."], ["Thank you", "Say it with a little extra."], ["Graduation", "A first step toward their own savings."], ["Wedding", "A gift that doesn’t need a registry."], ["Just because", "The best plot twists aren’t on a calendar."]].map(([t, d]) => `<div class="ucc"><b>${t}</b><p>${d}</p></div>`).join("")}</div>
+  </div></section>
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">Pricing</span><h2>1.5% per gift. Gas is on us.</h2><p class="l-p">Minimum $0.25 ($0.50 on Solana). The recipient pays nothing. <a href="#pricing" style="color:var(--accent)">See pricing →</a></p>
+  </div></section>
+</div>${foot}`;
+
+P.drop = () => `${siteNav()}
+<div class="pg">
+  <section class="p-hero">
+    <div>
+      <span class="crumb">${pi("drop")}Plot Twist Drop</span>
+      <h1>One approval.<br><span class="acc">Everyone gets paid.</span></h1>
+      <p class="l-p">Rewards, bounties, prizes and incentives for a whole list of people. Paste the list or describe it, SERV writes a personal note for each person, you approve the total once with Kite — and everyone gets their own claim link.</p>
+      <div class="cta-row"><a class="btn acc" href="#drop-new">Start a Drop ${ic.right}</a><a class="btn sec" href="#pricing">Pricing</a></div>
+      <div class="tagline"><span>${ic.check}Up to 200 people per Drop</span><span>${ic.check}No addresses needed</span><span>${ic.check}Unclaimed comes back</span></div>
+    </div>
+    <div>${dropMini}</div>
+  </section>
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">Why Drop</span><h2>Paying 20 people shouldn’t take 20 transfers.</h2>
+    <div class="vsteps">
+      <div class="vstep"><span class="vn">Before</span><b>Collect 20 addresses</b><p>Chase everyone for a wallet address on the right network, copy each one, send 20 transfers, sign 20 times.</p></div>
+      <div class="vstep"><span class="vn">With Drop</span><b>Share 20 links</b><p>No addresses up front. Each person claims to their own wallet or exchange, on the network you picked.</p></div>
+      <div class="vstep"><span class="vn">After</span><b>See who claimed</b><p>Live progress on your Dashboard. When the window ends, take back whatever wasn’t claimed in one tap.</p></div>
+    </div>
+  </div></section>
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">Built for</span><h2>Teams, DAOs, creators and researchers.</h2>
+    <div class="ucg">${[["Community rewards", "Thank the members who showed up this month."], ["Bounties & hackathons", "Pay winners and contributors the day you announce them."], ["Research incentives", "Pay interview and survey participants anywhere in the world."], ["Team bonuses", "Holiday bonuses with a personal note for each person."], ["Creator payouts", "Split a sponsorship across everyone who made it happen."], ["Event giveaways", "Hand out prizes to a room full of people with a QR code each."]].map(([t, d]) => `<div class="ucc"><b>${t}</b><p>${d}</p></div>`).join("")}</div>
+  </div></section>
+</div>${foot}`;
+
+P.agents = () => `${siteNav()}
+<div class="pg">
+  <section class="p-hero">
+    <div>
+      <span class="crumb">${pi("api")}Plot Twist Agent API</span>
+      <h1>Let your agent<br><span class="acc">pay people.</span></h1>
+      <p class="l-p">AI agents can plan, remember and decide — but paying a person still means asking for their wallet address. With one API call your agent creates a Gift or a Drop; you approve it with your Kite passkey, and the recipient gets a link.</p>
+      <div class="cta-row"><a class="btn acc" href="#dashboard">Get an API key ${ic.right}</a><a class="btn sec">View on GitHub</a></div>
+      <div class="tagline"><span>${ic.check}REST + MCP tool</span><span>${ic.check}Agent never holds funds</span><span>${ic.check}Same pricing as Gift & Drop</span></div>
+    </div>
+    <div>${apiMini}</div>
+  </section>
+  <section class="l-sec"><div class="l-in">
+    <span class="kicker">How it works</span><h2>Your agent prepares. You approve. They claim.</h2>
+    <div class="api-grid">
+      <div class="flow">
+        <div class="vfl"><span class="vn">1</span><div><b>The agent calls Plot Twist</b><p>“Maya’s birthday is Friday — $50 on Base.” SERV writes the note from the agent’s brief.</p></div></div>
+        <div class="vfl you"><span class="vn">2</span><div><b>You approve on Kite</b><p>You get an approval link with the exact total. One passkey tap. Nothing moves without it.</p></div></div>
+        <div class="vfl"><span class="vn">3</span><div><b>The agent delivers the link</b><p>By email, chat or however the agent talks to people. The recipient claims with any wallet or exchange address.</p></div></div>
+        <div class="vfl"><span class="vn">4</span><div><b>Webhooks keep the agent in the loop</b><p>Claimed, waiting or taken back — the agent knows, and can follow up.</p></div></div>
+      </div>
+      <div>
+        <div class="term"><div class="term-h"><i></i><i></i><i></i><span>POST /v1/drops</span></div><pre>curl https://plot-twist-zeta.vercel.app/api/v1/drops \\
+  -H <span class="c-s">"Authorization: Bearer pt_live_…"</span> \\
+  -d <span class="c-s">'{
+    "network": "base",
+    "brief": "Thank our top contributors this month",
+    "recipients": [
+      { "name": "alice.eth", "amount": 40 },
+      { "name": "bob", "amount": 25 }
+    ]
+  }'</span>
+
+<span class="c-c"># 201 Created</span>
+{ <span class="c-n">"id"</span>: <span class="c-s">"drp_8f3a"</span>, <span class="c-n">"total"</span>: <span class="c-s">"65.65"</span>,
+  <span class="c-n">"approvalUrl"</span>: <span class="c-s">"https://agentpassport.ai/…"</span>,
+  <span class="c-n">"links"</span>: [ … ] }</pre></div>
+        <div class="eps">
+          <div class="ep"><span class="m post">POST</span><code>/v1/gifts</code><span>Create one gift</span></div>
+          <div class="ep"><span class="m post">POST</span><code>/v1/drops</code><span>Pay a list of people</span></div>
+          <div class="ep"><span class="m get">GET</span><code>/v1/gifts/:id</code><span>Status and claim</span></div>
+          <div class="ep"><span class="m post">POST</span><code>/v1/gifts/:id/reclaim</code><span>Take back unclaimed</span></div>
+        </div>
+        <div class="soon-box"><b>Next: autonomous budgets.</b> Today every payment waits for your passkey. Once Plot Twist is listed in Kite’s service catalog, your agent can pay within a weekly budget you approve once on Kite — no tap per payment, never above your cap.</div>
+      </div>
+    </div>
+  </div></section>
+</div>${foot}`;
+
+P.pricing = () => `${siteNav()}
+<div class="pg">
+  <section class="p-hero center">
+    <span class="kicker">Pricing</span>
+    <h1>Pay per payment.<br><span class="acc">Recipients pay nothing.</span></h1>
+    <p class="l-p">No subscription. A small fee on what you send, and we cover the network fees on every claim.</p>
+    <div class="prices">
+      <div class="pr"><span class="crumb">${pi("gift")}Gift</span><div class="big">1.5%<small>per gift</small></div><div class="min">Minimum $0.25 · $0.50 on Solana</div>
+        <ul><li>${ic.check}SERV designs the gift and the note</li><li>${ic.check}Recipient asks SERV about it</li><li>${ic.check}Claim window 24h to 30 days</li><li>${ic.check}Take back unclaimed gifts</li></ul><a class="btn acc" href="#gift-app">Send a gift</a></div>
+      <div class="pr"><span class="crumb">${pi("drop")}Drop</span><div class="big">1%<small>per recipient</small></div><div class="min">Minimum $0.10 · $0.40 on Solana</div>
+        <ul><li>${ic.check}Up to 200 recipients per Drop</li><li>${ic.check}A personal note for each person</li><li>${ic.check}One Kite approval for the total</li><li>${ic.check}Progress, CSV export, take back</li></ul><a class="btn sec" href="#drop-new">Start a Drop</a></div>
+      <div class="pr"><span class="crumb">${pi("api")}Agent API</span><div class="big">Same<small>as Gift & Drop</small></div><div class="min">No extra fee for API calls</div>
+        <ul><li>${ic.check}REST API and MCP tool</li><li>${ic.check}Webhooks for claims</li><li>${ic.check}Approval links on Kite</li><li>${ic.check}Volume pricing for platforms</li></ul><a class="btn sec" href="#agents">Read the docs</a></div>
+    </div>
+    <div class="pfree"><span>${ic.check}Claiming is free</span><span>${ic.check}Network fees covered</span><span>${ic.check}Fee shown before you approve</span></div>
+  </section>
+</div>${foot}`;
+
+/* ---------- app: Drop ---------- */
+const ROWS = [["alice.eth", "@alice on Discord", 40, "Alice, your docs rewrite cut our support questions in half. Thank you!"], ["bob", "GitHub", 25, "Bob — three bug fixes in one week. The release is better because of you."], ["chen_dev", "GitHub", 25, "Chen, your first PR landed and it’s already in production. Welcome aboard!"], ["mira", "Discord", 25, "Mira, you answered more newcomer questions than anyone this month."], ["sam.sol", "X", 15, "Sam, thanks for the thread that brought 200 new members."]];
+P["drop-new"] = () => `${appNav("drop")}
+<div class="stage2 wide">
+  <div class="acard">
+    <div class="acard-h"><h2>${pi("drop")}New Drop</h2><span class="serv-tag">${ic.spark}Table built by SERV</span></div>
+    <div class="vprompt">Thank our top 5 contributors this month — alice.eth 40, bob 25, chen_dev 25, mira 25, sam.sol 15. Mention what each of them did.</div>
+    <div class="prow"><span>Describe it, or paste a list / CSV (name, amount, contact)</span><span class="vghost">${ic.spark}Rebuild</span></div>
+    <table class="tbl">
+      <thead><tr><th>Recipient</th><th>Amount</th><th>Note by SERV <span style="color:var(--dim)">· tap to edit</span></th></tr></thead>
+      <tbody>${ROWS.map(([n, c, a, t]) => `<tr><td class="nm">${n}<small>${c}</small></td><td class="am">$${a}.00</td><td class="nt">“${t}”</td></tr>`).join("")}</tbody>
+    </table>
+    <div class="opts">
+      <div class="opt"><small>Network · everyone claims here</small><b><img src="${T}chain_base.png" alt="">Base · USDC <span style="margin-left:auto;font-size:13px;color:var(--muted)">Balance 124.30</span></b></div>
+      <div class="opt"><small>Claim window</small><div class="chips2"><span>24h</span><span>3d</span><span class="on">7d</span><span>30d</span></div></div>
+    </div>
+    <div class="sum"><span>5 people · <b class="num">$130.00</b> + fee <b class="num">$1.30</b></span><span>Total <b class="num">$131.30</b> · paid with Kite</span></div>
+    <a class="cta" href="#drop-ready">${kite}Approve $131.30 with passkey</a>
+    <p class="foot" style="margin-top:10px">One approval pays for all 5 links. Unclaimed amounts can be taken back after 7 days.</p>
+  </div>
+</div>`;
+
+P["drop-ready"] = () => `${appNav("drop")}
+<div class="stage2 wide">
+  <div class="acard">
+    <div class="ready-h"><img src="${A}m-claimed.png" alt=""><h2>Your Drop is live</h2><p>$130.00 sealed on Base · 5 personal links · claim within 7 days</p></div>
+    <table class="tbl">
+      <thead><tr><th>Recipient</th><th>Amount</th><th>Link</th><th></th></tr></thead>
+      <tbody>${ROWS.map(([n, c, a], i) => `<tr><td class="nm">${n}<small>${c}</small></td><td class="am">$${a}.00</td><td><span class="lnk"><code>plot-twist-zeta.vercel.app/g/${["7f3c", "b21e", "9a04", "c5d8", "e3f1"][i]}…</code></span></td><td style="text-align:right"><span class="cp">${ic.copy}</span></td></tr>`).join("")}</tbody>
+    </table>
+    <div class="bar-row"><span class="btn sec">${ic.copy} Copy all links</span><span class="btn sec">Download CSV</span><a class="btn acc" href="#dashboard">Track in Dashboard</a></div>
+  </div>
+</div>`;
+
+P["gift-app"] = () => `${appNav("gift")}
+<div class="stage2" style="text-align:center;padding-top:60px">
+  <div class="acard" style="text-align:left">
+    <div class="acard-h"><h2>${pi("gift")}New Gift</h2><span class="serv-tag">${ic.spark}Designed by SERV</span></div>
+    <div class="vprompt">Birthday gift for my sister Maya, around $50 — she just moved to Berlin.</div>
+    <p class="foot" style="margin-top:14px">The Gift screen stays as it is today — only the nav changes: <b>Gift · Drop · Dashboard</b>.</p>
+  </div>
+</div>`;
+
+P.dashboard = () => `${appNav("dashboard")}
+<div class="stage2 wide">
+  <div class="vacct">${kite}<div><div class="bal num">$254.30</div><small>Kite Passport · kai@plottwist.gift</small></div><div class="btns"><span class="vghost">Add funds</span><span class="vghost">Withdraw</span><span class="vghost">API keys</span></div></div>
+  <div class="dtabs"><span>Gifts <em>4</em></span><span class="on">Drops <em>2</em></span><span>Received <em>1</em></span></div>
+  <div class="drow">
+    <div class="drow-h">${pi("drop")}<div><b>Top contributors · November</b><small>Base · created today · claim within 6 days</small></div><div class="right"><b class="num">$130.00</b><small>3 of 5 claimed</small></div></div>
+    <div class="vbar"><i style="width:60%"></i></div>
+    <table class="tbl"><tbody>${ROWS.map(([n, c, a], i) => `<tr><td class="nm">${n}<small>${c}</small></td><td class="am">$${a}.00</td><td style="text-align:right">${i < 3 ? '<span class="st ok">Claimed</span>' : '<span class="st wait">Waiting</span>'}</td></tr>`).join("")}</tbody></table>
+    <div class="drow-f"><span>Unclaimed: $40.00 · can be taken back in 6 days</span><span style="display:flex;gap:8px"><span class="vghost">${ic.copy} Copy links</span><span class="vghost">CSV</span></span></div>
+  </div>
+  <div class="drow">
+    <div class="drow-h">${pi("drop")}<div><b>Survey participants · Round 2</b><small>Solana · 10 days ago · window ended</small></div><div class="right"><b class="num">$300.00</b><small>27 of 30 claimed</small></div></div>
+    <div class="vbar"><i style="width:90%"></i></div>
+    <div class="drow-f"><span>Unclaimed: $30.00 · ready to take back</span><span class="vghost warn">${ic.back} Take back $30.00</span></div>
+  </div>
+</div>`;
+
+/* ---------- router ---------- */
+const SCREENS = [["home", "Home"], ["home-menu", "Products menu"], ["home-uses", "Use cases menu"], null, ["gift", "Gift"], ["drop", "Drop"], ["agents", "Agent API"], ["pricing", "Pricing"], null, ["gift-app", "App: Gift"], ["drop-new", "App: New Drop"], ["drop-ready", "App: Drop live"], ["dashboard", "App: Dashboard"]];
+function render() {
+  const id = (location.hash || "#home").slice(1);
+  const html = id === "home-menu" ? P.home("products") : id === "home-uses" ? P.home("uses") : (P[id] || P.home)();
+  document.getElementById("root").innerHTML = `<div class="screen desk app glow">${html}</div>`;
+  document.getElementById("rbar").innerHTML = SCREENS.map((s) => (s ? `<a href="#${s[0]}" class="${s[0] === id ? "on" : ""}">${s[1]}</a>` : "<i></i>")).join("");
+  document.querySelectorAll(".mi[data-menu] > button").forEach((b) => b.addEventListener("click", (e) => {
+    const mi = b.parentElement, was = mi.classList.contains("open");
+    document.querySelectorAll(".mi.open").forEach((x) => x.classList.remove("open"));
+    if (!was) mi.classList.add("open");
+    e.stopPropagation();
+  }));
+  window.scrollTo(0, 0);
+}
+document.addEventListener("click", (e) => { if (!e.target.closest(".mega")) document.querySelectorAll(".mi.open").forEach((x) => x.classList.remove("open")); });
+addEventListener("hashchange", render);
+render();
+</script>
+</body>
+</html>

@@ -1,15 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { isNetworkId, NETWORKS, type NetworkId } from "@/lib/chains";
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { isNetworkId, type NetworkId } from "@/lib/chains";
 import { feeFor } from "@/lib/pricing";
 import { DEFAULT_EXPIRY } from "@/lib/types";
-import { KiteConnect } from "../kite/kite-connect";
-import { Nav } from "../nav";
-import { Brand } from "../ui/marks";
-import { flash, Screen, useMobile } from "../ui/screen";
-import { useKite } from "../use-kite";
+import { flash } from "../ui/screen";
+import type { Kite } from "../use-kite";
 import { CreateCard, EXAMPLE_PROMPT, type Draft, type EditField, type Phase } from "./create-card";
 import { ApproveModal, NetworkMenu, ReadyModal, ReviewModal, SealingModal, type SealStep } from "./overlays";
 import { AddFunds } from "../kite/add-funds";
@@ -25,10 +23,12 @@ async function post<T>(url: string, body: unknown): Promise<T> {
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export function CreateFlow() {
+/** Overlays render at the screen root, above the nav and outside the panel's stacking context. */
+const atScreen = (node: ReactNode) => createPortal(node, document.querySelector(".screen.app") ?? document.body);
+
+/** The Gift tab: design with SERV, review, approve on Kite, then share the link. */
+export function GiftFlow({ kite, onConnect }: { kite: Kite; onConnect: () => void }) {
   const router = useRouter();
-  const m = useMobile();
-  const kite = useKite();
   const [phase, setPhase] = useState<Phase>("empty");
   const [prompt, setPrompt] = useState("");
   const [draft, setDraft] = useState<Draft>(EMPTY);
@@ -37,7 +37,6 @@ export function CreateFlow() {
   const [noteBusy, setNoteBusy] = useState(false);
   const [error, setError] = useState("");
   const [menu, setMenu] = useState(false);
-  const [connectOpen, setConnectOpen] = useState(false);
   const [topUp, setTopUp] = useState(false);
   const [modal, setModal] = useState<null | "review" | "approve" | "sealing" | "ready">(null);
   const [busy, setBusy] = useState(false);
@@ -48,7 +47,7 @@ export function CreateFlow() {
   const [txHash, setTxHash] = useState<string>();
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of ?example=1 from the landing page
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of ?example=1 from shared links
     if (new URLSearchParams(window.location.search).get("example")) setPrompt(EXAMPLE_PROMPT);
   }, []);
 
@@ -162,38 +161,25 @@ export function CreateFlow() {
       onRewrite={rewrite}
       onMax={maxGift}
       onNetwork={() => setMenu(true)}
-      onConnect={() => setConnectOpen(true)}
+      onConnect={onConnect}
       onTopUp={() => setTopUp(true)}
       onCreate={() => { setEditing(null); setReviewError(""); setModal("review"); }}
     />
   );
 
   return (
-    <Screen>
-      <Nav tab="create" kite={kite} onConnect={() => setConnectOpen(true)} network={draft.network} onNetwork={() => setMenu(true)} />
-      {m ? (
-        <div className="stage">{card}</div>
-      ) : (
-        <div className="stage">
-          <div style={{ width: 464 }}>{card}</div>
-          <div className="under">
-            <span>Paid with Kite Passport</span><i>·</i><span>Designed by</span><Brand k="openserv" className="os" /><i>·</i><span>Lands on {NETWORKS[draft.network].name}</span>
-          </div>
-        </div>
-      )}
-
-      {menu && <NetworkMenu selected={draft.network} amount={Number(draft.amountStr) || 0} kite={kite} onPick={pickNetwork} onClose={() => setMenu(false)} />}
-      {topUp && <AddFunds kite={kite} gift={{ network: draft.network, amount: Number(draft.amountStr) || 0 }} onClose={() => setTopUp(false)} onFunded={() => setTopUp(false)} />}
-      {connectOpen && <KiteConnect onClose={() => setConnectOpen(false)} onConnected={() => { setConnectOpen(false); kite.refresh(); flash("Kite Passport connected"); }} />}
-      {modal === "review" && <ReviewModal draft={draft} busy={busy} error={reviewError} onClose={() => setModal(null)} onApprove={approve} />}
-      {modal === "approve" && gift && (
+    <>
+      {card}
+      {menu && atScreen(<NetworkMenu centered selected={draft.network} amount={Number(draft.amountStr) || 0} kite={kite} onPick={pickNetwork} onClose={() => setMenu(false)} />)}
+      {topUp && atScreen(<AddFunds kite={kite} gift={{ network: draft.network, amount: Number(draft.amountStr) || 0 }} onClose={() => setTopUp(false)} onFunded={() => setTopUp(false)} />)}
+      {modal === "review" && atScreen(<ReviewModal draft={draft} busy={busy} error={reviewError} onClose={() => setModal(null)} onApprove={approve} />)}
+      {modal === "approve" && gift && atScreen(
         <ApproveModal draft={draft} approvalUrl={gift.approvalUrl} failed={failed}
           onClose={() => { setModal(null); if (!failed) flash("You can finish it later from your Dashboard"); }}
-          onRetry={() => { setGift(null); setFailed(""); setModal("review"); }} />
+          onRetry={() => { setGift(null); setFailed(""); setModal("review"); }} />,
       )}
-      {modal === "sealing" && gift && <SealingModal draft={draft} steps={steps} txHash={txHash} code={gift.code} />}
-      {modal === "ready" && gift && <ReadyModal draft={draft} link={link} onClose={reset} onGifts={() => router.push("/dashboard")} />}
-    </Screen>
+      {modal === "sealing" && gift && atScreen(<SealingModal draft={draft} steps={steps} txHash={txHash} code={gift.code} />)}
+      {modal === "ready" && gift && atScreen(<ReadyModal draft={draft} link={link} onClose={reset} onGifts={() => router.push("/dashboard")} />)}
+    </>
   );
 }
-

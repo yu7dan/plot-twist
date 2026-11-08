@@ -9,7 +9,7 @@ import { connectWallet, NoWallet } from "./claim/wallets";
 import { AddFunds } from "./kite/add-funds";
 import { KiteConnect } from "./kite/kite-connect";
 import { Withdraw } from "./kite/withdraw";
-import { Nav } from "./nav";
+import { SiteNav } from "./site/site-nav";
 import { Reclaim, type ReclaimItem } from "./reclaim";
 import { I } from "./ui/icons";
 import { Brand, ChainImg, Mascot, TokenImg, usd } from "./ui/marks";
@@ -156,7 +156,7 @@ export function Dashboard() {
     </div>
   );
   const sentBody = sent.length === 0 ? (
-    <div className="g-empty"><Mascot pose="wink" className="g-empty-m" /><p>No gifts sent yet.</p><Link className="cta" href="/create">New gift</Link></div>
+    <div className="g-empty"><Mascot pose="wink" className="g-empty-m" /><p>No gifts sent yet.</p><Link className="cta" href="/">New gift</Link></div>
   ) : (
     <>
       {reclaimBar}
@@ -265,12 +265,12 @@ export function Dashboard() {
 
   return (
     <Screen>
-      <Nav tab="dashboard" kite={kite} onConnect={() => setConnectOpen(true)} />
+      <SiteNav active="dashboard" kite={kite} onConnect={() => setConnectOpen(true)} />
       {m ? (
         <div className="ph-body"><div className="wrap m-wrap">{body}</div></div>
       ) : (
         <main className="wrap">
-          <div className="page-h"><h2>Dashboard</h2><Link className="btn sm acc" href="/create">New gift</Link></div>
+          <div className="page-h"><h2>Dashboard</h2><Link className="btn sm acc" href="/">New gift</Link></div>
           {body}
         </main>
       )}

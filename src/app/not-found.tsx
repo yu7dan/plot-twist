@@ -9,7 +9,7 @@ export default function NotFound() {
         <Mascot pose="wink" className="g-empty-m" />
         <b style={{ color: "var(--text)", fontSize: 20 }}>This gift link doesn’t open.</b>
         <span>It may not be paid yet, or the code is wrong. Ask the sender for a fresh link.</span>
-        <Link className="cta" href="/create">Create a gift</Link>
+        <Link className="cta" href="/">Create a gift</Link>
       </div>
     </div>
   );

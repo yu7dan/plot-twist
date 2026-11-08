@@ -21,9 +21,9 @@ export const ChainImg = ({ id, className = "" }: { id: NetworkId; className?: st
 const MASCOT_FILE: Record<string, string> = { main: "logo-head", head: "logo-head", icon: "app-icon" };
 
 /** The user-generated mascot images, used as-is. */
-export const Mascot = ({ pose = "main", className = "" }: { pose?: string; className?: string }) => (
+export const Mascot = ({ pose = "main", className = "", style }: { pose?: string; className?: string; style?: React.CSSProperties }) => (
   // eslint-disable-next-line @next/next/no-img-element
-  <img className={`mascot ${className}`} src={`/assets/${MASCOT_FILE[pose] || `m-${pose}`}.png`} alt="" draggable={false} />
+  <img className={`mascot ${className}`} style={style} src={`/assets/${MASCOT_FILE[pose] || `m-${pose}`}.png`} alt="" draggable={false} />
 );
 
 export const Logo = ({ href = "/" }: { href?: string }) => (
