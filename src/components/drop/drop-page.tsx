@@ -174,7 +174,7 @@ export function DropPage({ id }: { id: string }) {
     <Screen glow={false}>
       <SiteNav kite={kite} onConnect={() => setConnectOpen(true)} />
       <main className="v-page">
-        <Link className="v-back" href="/dashboard">{I.back}Dashboard</Link>
+        <Link className="v-back" href="/dashboard?tab=drops">{I.back}Dashboard</Link>
         {body}
       </main>
       {connectOpen && <KiteConnect onClose={() => setConnectOpen(false)} onConnected={() => { setConnectOpen(false); kite.refresh(); }} />}

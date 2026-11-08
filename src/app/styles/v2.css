@@ -306,3 +306,18 @@ button.v-rw.more:hover { color: var(--text); }
   .v-stats { grid-template-columns: 1fr; }
   .v-li { flex-wrap: wrap; }
 }
+
+/* Dashboard: Drops list */
+.v-drow { align-items: center; color: inherit; }
+.v-drow:hover b { color: var(--accent-text); }
+.v-drow .v-who p { display: flex; align-items: center; gap: 4px; }
+.v-drow .v-who p .ci { width: 14px; height: 14px; }
+.v-drow .v-progress { height: 4px; margin-top: 8px; max-width: 260px; }
+.v-drow .am { padding-top: 0; }
+
+/* Older screens on the light theme: lime only works as a fill there, so lime text becomes dark olive,
+   and the few hardcoded dark surfaces follow the theme. */
+.app > .nav { background: var(--nav); }
+[data-theme="light"] :is(.tag, .status.wait, .insight, .max, .reveal-pill svg, .ask svg.s, .qa small, .tu-wait a, .rc-bar b, .rc-ok, .li b.editable:hover, .kicker, .lp-t small) { color: var(--accent-text); }
+[data-theme="light"] :is(.status.done, .tag.ghost) { background: var(--s2); }
+[data-theme="light"] .status.unpaid { background: var(--s2); }

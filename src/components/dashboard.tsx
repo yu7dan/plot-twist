@@ -9,6 +9,7 @@ import { connectWallet, NoWallet } from "./claim/wallets";
 import { AddFunds } from "./kite/add-funds";
 import { KiteConnect } from "./kite/kite-connect";
 import { Withdraw } from "./kite/withdraw";
+import { V } from "./site/icons";
 import { SiteNav } from "./site/site-nav";
 import { Reclaim, type ReclaimItem } from "./reclaim";
 import { I } from "./ui/icons";
@@ -20,7 +21,8 @@ import { useKite } from "./use-kite";
 interface SentRow { code: string; createdAt: string; recipientName: string; occasion: string; amount: string; network: NetworkId; status: GiftStatus; claimedAt?: string; expiresAt?: string; reclaimable?: boolean; reclaimTo?: string; reclaimTxUrl?: string }
 interface ReceivedRow { code: string; senderName: string; occasion: string; amount: string; network: NetworkId; note: string; claimedAt?: string; address?: string; txUrl?: string }
 interface Wallet { address: string; kind: "evm" | "solana"; linkedAt: string }
-interface Account { sent: SentRow[]; received: ReceivedRow[]; wallets: Wallet[] }
+interface DropRow { id: string; title: string; createdAt: string; network: NetworkId; status: "awaiting_payment" | "payment_failed" | "live"; amount: string; expiresAt?: string; count: number; claimedCount: number; openAmount: string; reclaimable: boolean }
+interface Account { sent: SentRow[]; drops: DropRow[]; received: ReceivedRow[]; wallets: Wallet[] }
 
 const PILL: Record<GiftStatus, [string, string]> = {
   claimed: ["done", "Claimed"],
@@ -69,7 +71,7 @@ export function Dashboard() {
   const m = useMobile();
   const kite = useKite();
   const [connectOpen, setConnectOpen] = useState(false);
-  const [tab, setTab] = useState<"sent" | "received">("sent");
+  const [tab, setTab] = useState<"sent" | "drops" | "received">("sent");
   const [data, setData] = useState<Account | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linking, setLinking] = useState<WalletKey | null>(null);
@@ -80,10 +82,16 @@ export function Dashboard() {
   const load = useCallback(async () => {
     try {
       const d = await fetch("/api/account", { cache: "no-store" }).then((r) => r.json());
-      setData(d.connected ? { sent: d.sent ?? [], received: d.received ?? [], wallets: d.wallets ?? [] } : null);
+      setData(d.connected ? { sent: d.sent ?? [], drops: d.drops ?? [], received: d.received ?? [], wallets: d.wallets ?? [] } : null);
     } catch {
-      setData({ sent: [], received: [], wallets: [] });
+      setData({ sent: [], drops: [], received: [], wallets: [] });
     }
+  }, []);
+
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of ?tab= from the URL
+    if (t === "drops" || t === "received") setTab(t);
   }, []);
 
   useEffect(() => {
@@ -189,6 +197,31 @@ export function Dashboard() {
     </>
   );
 
+  /* ---------- drops ---------- */
+  const drops = data?.drops ?? [];
+  const dropsBody = drops.length === 0 ? (
+    <div className="g-empty"><Mascot pose="happy" className="g-empty-m" /><p>No Drops yet. Pay a whole list with one Kite approval.</p><Link className="cta" href="/?tab=drop">New Drop</Link></div>
+  ) : (
+    <div className="v-card v-list">
+      {drops.map((d) => {
+        const left = d.status === "live" ? timeLeft(d.expiresAt) : null;
+        const sub = d.status === "awaiting_payment" ? "Waiting for your Kite approval" : d.status === "payment_failed" ? "Payment didn't go through" : left ? `${d.claimedCount} of ${d.count} claimed · ${left}` : `${d.claimedCount} of ${d.count} claimed · window ended`;
+        return (
+          <Link key={d.id} className="v-li v-drow" href={`/drops/${d.id}`}>
+            <span className="v-pi drop">{V.drop}</span>
+            <div className="v-who">
+              <b>{d.title}</b>
+              <p><ChainImg id={d.network} className="xs" /> {NETWORKS[d.network].name} · {shortDate(d.createdAt)} · {sub}</p>
+              {d.status === "live" && <div className="v-progress"><i style={{ width: `${d.count ? Math.round((d.claimedCount / d.count) * 100) : 0}%` }} /></div>}
+            </div>
+            <span className="am num">{usd(d.amount)}</span>
+            {d.reclaimable ? <span className="v-st back">Take back {usd(d.openAmount)}</span> : <span className={`v-st ${d.status === "live" && d.claimedCount === d.count ? "ok" : "wait"}`}>{d.status === "live" ? (d.claimedCount === d.count ? "All claimed" : "Live") : d.status === "awaiting_payment" ? "Not paid yet" : "Not paid"}</span>}
+          </Link>
+        );
+      })}
+    </div>
+  );
+
   /* ---------- received ---------- */
   const received = data?.received ?? [];
   const wallets = (
@@ -255,22 +288,23 @@ export function Dashboard() {
       <>
         {account}
         <div className="seg">
-          <button className={tab === "sent" ? "on" : ""} onClick={() => setTab("sent")}>Sent <small>{sent.length}</small></button>
+          <button className={tab === "sent" ? "on" : ""} onClick={() => setTab("sent")}>Gifts <small>{sent.length}</small></button>
+          <button className={tab === "drops" ? "on" : ""} onClick={() => setTab("drops")}>Drops <small>{drops.length}</small></button>
           <button className={tab === "received" ? "on" : ""} onClick={() => setTab("received")}>Received <small>{received.length}</small></button>
         </div>
-        {tab === "sent" ? sentBody : receivedBody}
+        {tab === "sent" ? sentBody : tab === "drops" ? dropsBody : receivedBody}
       </>
     );
   }
 
   return (
-    <Screen>
+    <Screen glow={false}>
       <SiteNav active="dashboard" kite={kite} onConnect={() => setConnectOpen(true)} />
       {m ? (
         <div className="ph-body"><div className="wrap m-wrap">{body}</div></div>
       ) : (
         <main className="wrap">
-          <div className="page-h"><h2>Dashboard</h2><Link className="btn sm acc" href="/">New gift</Link></div>
+          <div className="page-h"><h2>Dashboard</h2><span style={{ display: "flex", gap: 8 }}><Link className="btn sm sec" href="/?tab=drop">New Drop</Link><Link className="btn sm acc" href="/">New Gift</Link></span></div>
           {body}
         </main>
       )}
