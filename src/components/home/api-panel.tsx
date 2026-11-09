@@ -12,26 +12,12 @@ const curl = () => `curl -X POST ${origin()}/api/v1/gifts \\
   -H "Content-Type: application/json" \\
   -d '{"brief": "Birthday gift for my sister Maya, about $50", "network": "base"}'`;
 
-/** OpenAI-style tool definition; works with any function-calling model. */
-const schema = () => JSON.stringify({
-  type: "function",
-  function: {
-    name: "plot_twist_create_gift",
-    description: "Prepare a USDC gift link for one person. The user approves the payment with their Kite passkey before anything is sent.",
-    parameters: {
-      type: "object",
-      properties: {
-        brief: { type: "string", description: "Who it's for, the occasion and roughly how much, in one sentence." },
-        network: { type: "string", enum: ["base", "solana", "polygon", "avalanche", "arc", "tempo", "robinhood"] },
-      },
-      required: ["brief"],
-    },
-  },
-}, null, 2);
+/** The live OpenAI-style tool definitions (works with any function-calling model). */
+const schema = async () => JSON.stringify((await fetch("/api/v1/schema").then((r) => r.json())).tools, null, 2);
 
-async function copy(text: string, what: string) {
+async function copy(text: string | Promise<string>, what: string) {
   try {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(await text);
     flash(`${what} copied`);
   } catch {
     flash("Couldn't copy — check clipboard permissions");
@@ -51,7 +37,7 @@ export function ApiPanel() {
         </div>
         <p className="v-fine">Your agent prepares Gifts and Drops and sends you an approval link. Every payment still waits for your Kite passkey — the agent never holds your money.</p>
       </div>
-      <Link className="v-cta" href="/dashboard?keys=1" style={{ marginTop: 4 }}>Create an API key</Link>
+      <Link className="v-cta" href="/dashboard?tab=keys" style={{ marginTop: 4 }}>Create an API key</Link>
     </div>
   );
 }

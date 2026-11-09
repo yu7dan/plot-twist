@@ -9,6 +9,7 @@ import { connectWallet, NoWallet } from "./claim/wallets";
 import { AddFunds } from "./kite/add-funds";
 import { KiteConnect } from "./kite/kite-connect";
 import { Withdraw } from "./kite/withdraw";
+import { ApiKeys } from "./api-keys";
 import { V } from "./site/icons";
 import { SiteNav } from "./site/site-nav";
 import { Reclaim, type ReclaimItem } from "./reclaim";
@@ -71,7 +72,7 @@ export function Dashboard() {
   const m = useMobile();
   const kite = useKite();
   const [connectOpen, setConnectOpen] = useState(false);
-  const [tab, setTab] = useState<"sent" | "drops" | "received">("sent");
+  const [tab, setTab] = useState<"sent" | "drops" | "received" | "keys">("sent");
   const [data, setData] = useState<Account | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linking, setLinking] = useState<WalletKey | null>(null);
@@ -91,7 +92,7 @@ export function Dashboard() {
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get("tab");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of ?tab= from the URL
-    if (t === "drops" || t === "received") setTab(t);
+    if (t === "drops" || t === "received" || t === "keys") setTab(t);
   }, []);
 
   useEffect(() => {
@@ -291,8 +292,9 @@ export function Dashboard() {
           <button className={tab === "sent" ? "on" : ""} onClick={() => setTab("sent")}>Gifts <small>{sent.length}</small></button>
           <button className={tab === "drops" ? "on" : ""} onClick={() => setTab("drops")}>Drops <small>{drops.length}</small></button>
           <button className={tab === "received" ? "on" : ""} onClick={() => setTab("received")}>Received <small>{received.length}</small></button>
+          <button className={tab === "keys" ? "on" : ""} onClick={() => setTab("keys")}>API keys</button>
         </div>
-        {tab === "sent" ? sentBody : tab === "drops" ? dropsBody : receivedBody}
+        {tab === "sent" ? sentBody : tab === "drops" ? dropsBody : tab === "keys" ? <ApiKeys /> : receivedBody}
       </>
     );
   }

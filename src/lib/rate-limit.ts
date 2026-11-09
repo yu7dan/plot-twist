@@ -46,6 +46,7 @@ export const LIMITS = {
   giftRead: { max: 120, windowMs: 10 * MIN },
   claim: { max: 10, windowMs: 10 * MIN },
   link: { max: 20, windowMs: 10 * MIN },
+  api: { max: 60, windowMs: 10 * MIN },
 } as const;
 
 /** Returns a 429 response when the caller is over the limit, otherwise null. */
