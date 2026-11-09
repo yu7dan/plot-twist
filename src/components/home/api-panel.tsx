@@ -37,7 +37,7 @@ export function ApiPanel() {
         </div>
         <p className="v-fine">Your agent prepares Gifts and Drops and sends you an approval link. Every payment still waits for your Kite passkey — the agent never holds your money.</p>
       </div>
-      <Link className="v-cta" href="/dashboard?tab=keys" style={{ marginTop: 4 }}>Create an API key</Link>
+      <Link className="v-cta" href="/dashboard?view=developers" style={{ marginTop: 4 }}>Create an API key</Link>
     </div>
   );
 }

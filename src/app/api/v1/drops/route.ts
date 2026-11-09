@@ -3,6 +3,7 @@ import { agentAuth, originOf } from "@/lib/agent-auth";
 import { NETWORK_ORDER, type NetworkId } from "@/lib/chains";
 import { DROP_EACH_MAX, DROP_EACH_MIN, DROP_MAX_PEOPLE, DROP_MAX_TOTAL } from "@/lib/pricing";
 import { createRequest, requestView } from "@/lib/requests";
+import { recordUsage } from "@/lib/usage";
 import { designDrop, ServError } from "@/lib/serv";
 import { EXPIRY_OPTIONS, type ExpiryHours } from "@/lib/types";
 
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
       expiresInHours: b.expiresInHours as ExpiryHours,
       drop: { title: title ?? "Drop", occasion, network: network ?? "base", recipients },
     });
+    await recordUsage(key.id, "prepared");
     return Response.json(await requestView(r, originOf(request)), { status: 201 });
   } catch (e) {
     console.error("v1 drop failed", e);

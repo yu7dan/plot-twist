@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { isNetworkId, NETWORKS, type NetworkId } from "@/lib/chains";
-import { DROP_EACH_MAX, DROP_EACH_MIN, DROP_MAX_TOTAL, dropTotals } from "@/lib/pricing";
+import { DROP_EACH_MAX, DROP_EACH_MIN, DROP_MAX_TOTAL, dropTotals, shortfall } from "@/lib/pricing";
 import { EXPIRY_OPTIONS, type ExpiryHours } from "@/lib/types";
 import { NetworkMenu } from "../create/overlays";
 import { AddFunds } from "../kite/add-funds";
@@ -39,6 +39,8 @@ export function DropPanel({ kite, onConnect }: { kite: Kite; onConnect: () => vo
   const [error, setError] = useState("");
   const [all, setAll] = useState(false);
   const [noteAt, setNoteAt] = useState<number | null>(null);
+  const [amountAt, setAmountAt] = useState<number | null>(null);
+  const [titleEdit, setTitleEdit] = useState(false);
   const [menu, setMenu] = useState(false);
   const [topUp, setTopUp] = useState(false);
   const [modal, setModal] = useState<null | "review" | "approve">(null);
@@ -84,7 +86,7 @@ export function DropPanel({ kite, onConnect }: { kite: Kite; onConnect: () => vo
   else if (bad) cta = <button className="v-cta off" disabled>Each person needs {usd(DROP_EACH_MIN)}–{usd(DROP_EACH_MAX)} and a note</button>;
   else if (t.sum > DROP_MAX_TOTAL) cta = <button className="v-cta off" disabled>A Drop can send up to {usd(DROP_MAX_TOTAL)}</button>;
   else if (!kite.connected) cta = <button className="v-cta" onClick={onConnect}><Brand k="kite" />Connect Kite to send</button>;
-  else if (balance + 1e-9 < t.total) cta = <button className="v-cta warn" onClick={() => setTopUp(true)}>Add {(Math.ceil((t.total - balance) * 100) / 100).toFixed(2)} {sym} to Kite to continue</button>;
+  else if (balance + 1e-9 < t.total) cta = <button className="v-cta warn" onClick={() => setTopUp(true)}>Add {shortfall(t.total, balance).toFixed(2)} {sym} to Kite to continue</button>;
   else cta = <button className="v-cta" onClick={() => { setReviewError(""); setModal("review"); }}><Brand k="kite" />Approve {usd(t.total)} with Kite</button>;
 
   async function approve() {
@@ -144,7 +146,14 @@ export function DropPanel({ kite, onConnect }: { kite: Kite; onConnect: () => vo
 
       <div className="v-mod out">
         <div className="v-lbl">
-          <span>{filled ? <><input className="v-title-in" value={d.title} maxLength={60} onChange={(e) => setD((x) => ({ ...x, title: e.target.value }))} /> · {d.recipients.length} {d.recipients.length === 1 ? "person" : "people"}</> : "Everyone gets a link and a note"}</span>
+          {filled ? (
+            <span className="dt-head">
+              {titleEdit
+                ? <input className="dt-title-in" autoFocus maxLength={60} size={Math.max(8, d.title.length + 1)} value={d.title} onChange={(e) => setD((x) => ({ ...x, title: e.target.value }))} onBlur={() => setTitleEdit(false)} onKeyDown={(e) => e.key === "Enter" && setTitleEdit(false)} />
+                : <button className="dt-title" title="Rename" onClick={() => setTitleEdit(true)}>{d.title || "Untitled Drop"}{I.edit}</button>}
+              <span className="dt-count">{d.recipients.length} {d.recipients.length === 1 ? "person" : "people"}</span>
+            </span>
+          ) : <span>Everyone gets a link and a note</span>}
           {!filled && <span className="v-chip">Up to 200 people</span>}
         </div>
         <div className="v-split">
@@ -165,7 +174,9 @@ export function DropPanel({ kite, onConnect }: { kite: Kite; onConnect: () => vo
                     ? <textarea autoFocus rows={2} maxLength={160} value={r.note} onChange={(e) => patch(i, { note: e.target.value })} onBlur={() => setNoteAt(null)} />
                     : <span className="nt" title="Edit the note" onClick={() => setNoteAt(i)}>“{r.note}”</span>}
                 </span>
-                <label className="am num">$<input inputMode="decimal" value={r.amountStr} onChange={(e) => patch(i, { amountStr: e.target.value.replace(/[^0-9.]/g, "").slice(0, 6) })} /></label>
+                {amountAt === i
+                  ? <label className="dt-amt-in num">$<input autoFocus inputMode="decimal" value={r.amountStr} onChange={(e) => patch(i, { amountStr: e.target.value.replace(/[^0-9.]/g, "").slice(0, 6) })} onBlur={() => setAmountAt(null)} onKeyDown={(e) => e.key === "Enter" && setAmountAt(null)} /></label>
+                  : <button className={`dt-amt num${bad === r ? " bad" : ""}`} title="Change amount" onClick={() => setAmountAt(i)}>{usd(Number(r.amountStr) || 0)}</button>}
                 <button className="rm" title="Remove" onClick={() => remove(i)}>{I.x}</button>
               </div>
             ))}

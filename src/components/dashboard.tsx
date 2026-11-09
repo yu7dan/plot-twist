@@ -9,7 +9,7 @@ import { connectWallet, NoWallet } from "./claim/wallets";
 import { AddFunds } from "./kite/add-funds";
 import { KiteConnect } from "./kite/kite-connect";
 import { Withdraw } from "./kite/withdraw";
-import { ApiKeys } from "./api-keys";
+import { Developers } from "./developers";
 import { V } from "./site/icons";
 import { SiteNav } from "./site/site-nav";
 import { Reclaim, type ReclaimItem } from "./reclaim";
@@ -72,7 +72,10 @@ export function Dashboard() {
   const m = useMobile();
   const kite = useKite();
   const [connectOpen, setConnectOpen] = useState(false);
-  const [tab, setTab] = useState<"sent" | "drops" | "received" | "keys">("sent");
+  const [tab, setTab] = useState<"sent" | "drops" | "received">("sent");
+  // Two levels: your own activity, and the Agent API (kept apart so usage can grow its own views).
+  const [view, setView] = useState<"activity" | "developers">("activity");
+  const [createKey, setCreateKey] = useState(false);
   const [data, setData] = useState<Account | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linking, setLinking] = useState<WalletKey | null>(null);
@@ -90,9 +93,11 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get("tab");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of ?tab= from the URL
-    if (t === "drops" || t === "received" || t === "keys") setTab(t);
+    const q = new URLSearchParams(window.location.search);
+    const t = q.get("tab");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of ?tab= / ?view= from the URL
+    if (t === "drops" || t === "received") setTab(t);
+    if (q.get("view") === "developers" || t === "keys") setView("developers");
   }, []);
 
   useEffect(() => {
@@ -275,6 +280,20 @@ export function Dashboard() {
     </>
   );
 
+  const pick = (v: "activity" | "developers") => {
+    setView(v);
+    history.replaceState(null, "", v === "developers" ? "/dashboard?view=developers" : "/dashboard");
+  };
+  const levels = (
+    <div className="d-levels">
+      <button className={view === "activity" ? "on" : ""} onClick={() => pick("activity")}>{V.user}Activity</button>
+      <button className={view === "developers" ? "on" : ""} onClick={() => pick("developers")}>{V.code}Developers<span className="d-api">API</span></button>
+    </div>
+  );
+  const headActions = view === "developers"
+    ? <><Link className="btn sm sec" href="/docs">Docs</Link>{kite.connected && <button className="btn sm acc" onClick={() => setCreateKey(true)}>+ Create API key</button>}</>
+    : <><Link className="btn sm sec" href="/?tab=drop">New Drop</Link><Link className="btn sm acc" href="/">New Gift</Link></>;
+
   let body: ReactNode = null;
   if (!kite.loading && !kite.connected) {
     body = (
@@ -292,9 +311,8 @@ export function Dashboard() {
           <button className={tab === "sent" ? "on" : ""} onClick={() => setTab("sent")}>Gifts <small>{sent.length}</small></button>
           <button className={tab === "drops" ? "on" : ""} onClick={() => setTab("drops")}>Drops <small>{drops.length}</small></button>
           <button className={tab === "received" ? "on" : ""} onClick={() => setTab("received")}>Received <small>{received.length}</small></button>
-          <button className={tab === "keys" ? "on" : ""} onClick={() => setTab("keys")}>API keys</button>
         </div>
-        {tab === "sent" ? sentBody : tab === "drops" ? dropsBody : tab === "keys" ? <ApiKeys /> : receivedBody}
+        {tab === "sent" ? sentBody : tab === "drops" ? dropsBody : receivedBody}
       </>
     );
   }
@@ -303,11 +321,12 @@ export function Dashboard() {
     <Screen glow={false}>
       <SiteNav active="dashboard" kite={kite} onConnect={() => setConnectOpen(true)} />
       {m ? (
-        <div className="ph-body"><div className="wrap m-wrap">{body}</div></div>
+        <div className="ph-body"><div className="wrap m-wrap">{kite.connected && levels}{view === "developers" && kite.connected ? <Developers createOpen={createKey} onCreateClose={() => setCreateKey(false)} /> : body}</div></div>
       ) : (
         <main className="wrap">
-          <div className="page-h"><h2>Dashboard</h2><span style={{ display: "flex", gap: 8 }}><Link className="btn sm sec" href="/?tab=drop">New Drop</Link><Link className="btn sm acc" href="/">New Gift</Link></span></div>
-          {body}
+          <div className="page-h"><h2>Dashboard</h2><span style={{ display: "flex", gap: 8 }}>{headActions}</span></div>
+          {kite.connected && levels}
+          {view === "developers" && kite.connected ? <Developers createOpen={createKey} onCreateClose={() => setCreateKey(false)} /> : body}
         </main>
       )}
       {connectOpen && <KiteConnect onClose={() => setConnectOpen(false)} onConnected={onConnected} />}

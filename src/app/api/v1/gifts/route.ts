@@ -3,6 +3,7 @@ import { agentAuth, originOf } from "@/lib/agent-auth";
 import { NETWORK_ORDER, type NetworkId } from "@/lib/chains";
 import { GIFT_MAX, GIFT_MIN } from "@/lib/pricing";
 import { createRequest, requestView } from "@/lib/requests";
+import { recordUsage } from "@/lib/usage";
 import { designGift, ServError } from "@/lib/serv";
 import { DEFAULT_EXPIRY, EXPIRY_OPTIONS, type ExpiryHours } from "@/lib/types";
 
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
         note: b.note ?? d!.note,
       },
     });
+    await recordUsage(key.id, "prepared");
     return Response.json(await requestView(r, originOf(request)), { status: 201 });
   } catch (e) {
     console.error("v1 gift failed", e);

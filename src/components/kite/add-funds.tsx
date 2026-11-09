@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { NETWORKS, type NetworkId } from "@/lib/chains";
-import { totalFor } from "@/lib/pricing";
+import { shortfall, totalFor } from "@/lib/pricing";
 import { CHAIN_UI, WALLETS, type WalletKey } from "@/lib/ui-assets";
 import { connectWallet, NoWallet } from "../claim/wallets";
 import { I } from "../ui/icons";
@@ -30,7 +30,7 @@ export function AddFunds({ kite, onClose, onFunded, gift }: Props) {
   const sym = net.asset.symbol;
   const have = kite.balances[network] ?? 0;
   const need = gift ? totalFor(gift.amount, gift.network) : 0;
-  const [value, setValue] = useState(gift ? Math.max(0.01, Math.ceil((need - have) * 100) / 100).toFixed(2) : "");
+  const [value, setValue] = useState(gift ? Math.max(0.01, shortfall(need, have)).toFixed(2) : "");
   const [busy, setBusy] = useState<WalletKey | null>(null);
   const [sent, setSent] = useState<{ hash: string; before: number; amount: number } | null>(null);
   const [error, setError] = useState("");

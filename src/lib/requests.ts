@@ -37,6 +37,10 @@ export async function createRequest(key: ApiKey, p: Pick<AgentRequest, "kind" | 
 
 export const getRequest = (id: string) => requests.get(id);
 
+export async function requestsOf(ownerId: string) {
+  return (await requests.all()).filter((r) => r.ownerId === ownerId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 export class RequestError extends Error {
   constructor(message: string, public status = 400) {
     super(message);

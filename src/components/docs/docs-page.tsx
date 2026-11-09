@@ -50,7 +50,7 @@ export function DocsPage() {
 
         <section>
           <h2>Authentication</h2>
-          <p>Create a key in <Link href="/dashboard?tab=keys">Dashboard → API keys</Link> and send it as a bearer token. Each key allows 60 requests per 10 minutes.</p>
+          <p>Create a key in <Link href="/dashboard?view=developers">Dashboard → Developers</Link> and send it as a bearer token. Each key allows 60 requests per 10 minutes.</p>
           <Code>{`Authorization: Bearer pt_live_…`}</Code>
         </section>
 

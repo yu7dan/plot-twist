@@ -198,8 +198,9 @@ ${first ? `Recipients: ${JSON.stringify(first)}
     ? list.map((r, i) => ({ name: r.name, contact: r.contact, amount: clampEach(r.amount), note: str(fromServ[i]?.note, 160, "") }))
     : fromServ.map((r) => {
         const name = str(r.name, 40, "Friend"), contact = str(r.contact, 60, "");
-        // SERV sometimes echoes the name as the contact; that's no contact at all.
-        return { name, contact: contact.toLowerCase() === name.toLowerCase() ? "" : contact, amount: clampEach(r.amount), note: str(r.note, 160, "") };
+        // Keep a contact only if the sender actually wrote it (SERV sometimes echoes the name or invents one).
+        const real = contact && contact.toLowerCase() !== name.toLowerCase() && brief.toLowerCase().includes(contact.toLowerCase());
+        return { name, contact: real ? contact : "", amount: clampEach(r.amount), note: str(r.note, 160, "") };
       });
 
   // Longer lists: the rest of the notes in parallel batches.

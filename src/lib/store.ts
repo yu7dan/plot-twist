@@ -133,4 +133,33 @@ export function collection<T extends object>(name: string) {
   };
 }
 
+/**
+ * Named integer counters (usage stats). Redis increments atomically with HINCRBY; locally they live in a JSON
+ * file behind the same write queue. Counts are best-effort analytics, never money.
+ */
+export function counters(name: string) {
+  const k = key(name);
+  return {
+    incr: async (field: string, by = 1) => {
+      const db = redis();
+      if (db) { await db.hincrby(k, field, by); return; }
+      await enqueue(async () => {
+        const all = await readAll<number>(name);
+        all[field] = (all[field] ?? 0) + by;
+        await writeAll(name, all);
+      });
+    },
+    getMany: async (fields: string[]): Promise<Record<string, number>> => {
+      if (!fields.length) return {};
+      const db = redis();
+      if (db) {
+        const vals = (await db.hmget(k, ...fields)) as Record<string, string | null> | null;
+        return Object.fromEntries(fields.map((f) => [f, Number(vals?.[f] ?? 0) || 0]));
+      }
+      const all = await readAll<number>(name);
+      return Object.fromEntries(fields.map((f) => [f, all[f] ?? 0]));
+    },
+  };
+}
+
 export const newId = (bytes = 4) => crypto.randomBytes(bytes).toString("hex");

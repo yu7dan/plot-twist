@@ -11,6 +11,8 @@ export const V = {
   plug: (<svg aria-hidden="true" {...s}><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4" /></svg>),
   term: (<svg aria-hidden="true" {...s}><path d="m4 17 6-6-6-6M12 19h8" /></svg>),
   fn: (<svg aria-hidden="true" {...s}><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1" /></svg>),
+  user: (<svg aria-hidden="true" {...s}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>),
+  code: (<svg aria-hidden="true" {...s}><path d="m16 18 6-6-6-6M8 6l-6 6 6 6" /></svg>),
   arrow: (<svg aria-hidden="true" {...s} strokeWidth={2.4}><path d="M5 12h14M13 6l6 6-6 6" /></svg>),
 };
 

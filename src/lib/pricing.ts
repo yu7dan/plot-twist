@@ -8,6 +8,9 @@ export const GIFT_MAX = 500;
 
 export const money = (n: number) => n.toFixed(2);
 
+/** Cents still missing to cover `need` (rounded up, without float noise: 131.3 - 0 must stay 131.30). */
+export const shortfall = (need: number, have: number) => Math.max(0, Math.ceil(Number(((need - have) * 100).toFixed(6))) / 100);
+
 /* Drop: one approval pays a whole list; each person gets their own gift link. */
 export const DROP_FEE_RATE = 0.01;
 export const DROP_FEE_MIN: Record<NetworkId, number> = { base: 0.1, solana: 0.4, polygon: 0.1, avalanche: 0.1, arc: 0.1, tempo: 0.1, robinhood: 0.1 };

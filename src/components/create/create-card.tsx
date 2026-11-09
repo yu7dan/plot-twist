@@ -1,7 +1,7 @@
 "use client";
 
 import { NETWORKS, type NetworkId } from "@/lib/chains";
-import { feeFor, GIFT_MAX, GIFT_MIN, totalFor } from "@/lib/pricing";
+import { feeFor, GIFT_MAX, GIFT_MIN, shortfall, totalFor } from "@/lib/pricing";
 import { I } from "../ui/icons";
 import { Brand, ChainImg, Mascot, TokenImg, usd } from "../ui/marks";
 import { EXPIRY_OPTIONS, type ExpiryHours } from "@/lib/types";
@@ -84,7 +84,7 @@ export function CreateCard(p: Props) {
   else if (amount > GIFT_MAX) cta = <button className="v-cta off" disabled>Maximum gift is ${GIFT_MAX}</button>;
   else if (!kite.connected) cta = <button className="v-cta" onClick={p.onConnect}><Brand k="kite" />Connect Kite to send</button>;
   else if (!canPay(kite, g.network, amount)) {
-    const short = Math.ceil((totalFor(amount, g.network) - (kite.balances[g.network] ?? 0)) * 100) / 100;
+    const short = shortfall(totalFor(amount, g.network), kite.balances[g.network] ?? 0);
     cta = <button className="v-cta warn" onClick={p.onTopUp}>Add {short.toFixed(2)} {asset.symbol} to Kite to continue</button>;
   }
   else cta = <button className="v-cta" onClick={p.onCreate}><Brand k="kite" />Send with Kite</button>;
