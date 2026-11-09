@@ -8,8 +8,8 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 const appUrl =
   process.env.NEXT_PUBLIC_APP_URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
-const title = "Plot Twist — Every gift deserves a plot twist";
-const description = "Describe a gift in one sentence. AI designs it, Kite Passport pays for it, and they unwrap it from a single link.";
+const title = "Plot Twist — Send money like a gift";
+const description = "Gift links for one person, Drops for a whole list, and an API for your AI agent. SERV writes the notes, Kite Passport approves every payment, they claim with any wallet.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),

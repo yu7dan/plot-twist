@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { asset, OG, OG_SIZE, OgFrame, ogFonts } from "@/lib/og";
 
-export const alt = "Plot Twist — every gift deserves a plot twist";
+export const alt = "Plot Twist — send money like a gift";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
@@ -13,11 +13,11 @@ export default async function Image() {
         <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", flexDirection: "column", fontSize: 80, fontWeight: 700, letterSpacing: -3.5, lineHeight: 1.02 }}>
-              <span>Every gift deserves</span>
-              <span style={{ color: OG.accent }}>a plot twist.</span>
+              <span>Send money</span>
+              <span style={{ color: OG.accent }}>like a gift.</span>
             </div>
             <div style={{ display: "flex", marginTop: 28, fontSize: 30, color: OG.muted, fontWeight: 500 }}>
-              One sentence in. AI designs the gift. They unwrap it from a link.
+              To one person, a whole list, or through your AI agent.
             </div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}

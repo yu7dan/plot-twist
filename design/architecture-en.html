@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Plot Twist — Architecture v1.2</title>
+<title>Plot Twist — Architecture v2.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -81,6 +81,13 @@
   .vi .q { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: rgba(245, 166, 35, 0.15); color: #F5A623; font-weight: 700; font-size: 12px; }
   .foot { margin-top: 28px; font-size: 12.5px; color: var(--dim); }
   .legend span { white-space: nowrap; }
+  /* ④ flows */
+  .flows { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+  .flow span { font-size: 13px; padding: 8px 12px; border-radius: 12px; background: var(--s2); border: 1px solid var(--line2); color: var(--soft); }
+  .flow span.k { background: #F4F2EE; color: #0A0A0B; border-color: transparent; }
+  .flow span.s { border-color: rgba(200, 245, 66, 0.5); }
+  .flow em { font-style: normal; color: var(--dim); }
 </style>
 </head>
 <body>
@@ -102,7 +109,7 @@
 
   document.getElementById("page").innerHTML = `
     <div class="hd">
-      <div><h1><img src="assets/app-icon.png" alt="" />Plot Twist · Architecture v1.2</h1><p>Digital-dollar gifts on the seven networks Kite Passport holds (USDC on six, USDG on Robinhood Chain). Paid with a passkey-approved Kite transfer. One gift lives on one network.</p></div>
+      <div><h1><img src="assets/app-icon.png" alt="" />Plot Twist · Architecture v2.0</h1><p>Send money like a gift — to one person (Gift), a whole list (Drop), or through your AI agent (Agent API). Digital dollars on the seven networks Kite Passport holds; every payment is a passkey-approved Kite transfer.</p></div>
       <div class="legend"><span><i style="background:#F4F2EE"></i>Kite</span><span><i style="border:1px solid #C8F542"></i>SERV</span><span><i style="background:#222226;border:1px solid #444"></i>Plot Twist</span></div>
     </div>
 
@@ -110,7 +117,8 @@
     <div class="zones">
       <div class="zone">
         <h3>Pay · sender <small>Kai</small></h3>
-        <div class="box ours"><b>Web app (desktop + phone)</b><ul><li>Landing, Create, Dashboard</li><li>Next.js 16, one responsive design system</li></ul></div>
+        <div class="box ours"><b>Web app (desktop + phone, dark + light)</b><ul><li>Home is the app: Gift · Drop · Agent API tabs</li><li>Dashboard: Activity and Developers; Drop pages; Docs</li><li>Next.js 16 on Vercel</li></ul></div>
+        <div class="box ours"><b>Your AI agent</b><ul><li>An API key per agent; prepares Gifts and Drops through <code>/api/v1</code></li><li>The owner approves each one at <code>/approve/&lt;id&gt;</code> with their Kite passkey</li></ul></div>
         <div class="box kown"><b>${U.brand("kite")}Kite Passport</b><ul>
           <li>Email-code sign-in; new users sign up and create a passkey on Kite</li>
           <li>Stablecoin balance on each of the seven networks</li>
@@ -121,24 +129,30 @@
         <h3>Fulfil · Plot Twist platform <small>us</small></h3>
         <div class="box serv"><b><span class="brand os">${window.BRAND.openserv}</span>SERV Reasoning</b><ul>
           <li>One sentence → recipient, occasion, amount, network (if named) and a note — strict JSON schema</li>
+          <li>Drop: a pasted list or a description → a table with a note per person (batches of 25)</li>
           <li>Note rewrites; answers the recipient's questions ("What is USDC?"), no investment advice</li></ul></div>
-        <div class="box ours"><b>Gift API</b><ul>
+        <div class="box ours"><b>Gift &amp; Drop API</b><ul>
           <li>Creates the gift and asks Kite for the transfer; polls it and verifies it on-chain → <code>sealed</code></li>
-          <li>Claim with a signed message; take-back after the claim window</li>
-          <li>Dashboard: sent / received, linked wallets</li></ul></div>
+          <li>A Drop is one Kite transfer for N ordinary gifts; leftovers come back in one transfer</li>
+          <li>Claim with a signed message or a pasted address; take-back after the claim window</li></ul></div>
+        <div class="box ours"><b>Agent API</b><ul>
+          <li>Hashed, revocable keys; rate limits and usage per key per day</li>
+          <li>REST + OpenAI-style tool schema; MCP server coming soon</li>
+          <li>Free to call — the fee applies only when the owner approves and pays</li></ul></div>
         <div class="box ours"><b>Treasury (platform wallets)</b><ul>
           <li>One address per network: gift payments land here, recipients are paid from here (gas covered)</li>
           <li>Payouts are recorded the moment they're broadcast — never paid twice</li>
           <li>v2: on-chain escrow contracts</li></ul></div>
-        <div class="box ours"><b>Storage</b><ul><li>Gifts, sessions (Kite token encrypted server-side), accounts and linked wallets</li></ul></div>
+        <div class="box ours"><b>Storage · Upstash Redis</b><ul><li>Gifts, Drops, sessions (Kite token encrypted), accounts, API keys, agent requests, usage counters</li><li>Compare-and-set updates; a per-network lock so payouts never reuse a nonce</li></ul></div>
       </div>
       <div class="zone">
         <h3>Receive · recipient <small>Maya</small></h3>
-        <div class="box ours"><b>Gift page (desktop + phone)</b><ul><li>Sealed → reveal → ask SERV → connect wallet → claim</li></ul></div>
+        <div class="box ours"><b>Gift page (desktop + phone)</b><ul><li>Sealed → reveal → ask SERV → claim</li><li>Every Drop recipient gets the same page with their own note</li></ul></div>
         <div class="box ours"><b>Recipient wallet (no Kite needed)</b><ul>
           <li>EVM: MetaMask, Coinbase Wallet, Trust Wallet</li>
           <li>Solana: Phantom, Solflare, Trust Wallet</li>
-          <li>On phones, deep links open the page inside the wallet's browser</li></ul></div>
+          <li>On phones, deep links open the page inside the wallet's browser</li>
+          <li>No wallet? Paste any address, e.g. an exchange deposit address</li></ul></div>
         <div class="box ours"><b>Seven networks (all native to Kite Passport)</b><div class="nets">${nets}</div></div>
       </div>
     </div>
@@ -173,13 +187,24 @@
       </div>
     </div>
 
-    <div class="sec-t">③ Gift states & safety</div>
+    <div class="sec-t">③ A Drop, and an agent</div>
+    <div class="flows">
+      <div class="card2"><h4>Drop: pay a whole list with one approval</h4>
+        <div class="flow"><span>Paste a list or describe it</span><em>→</em><span class="s">SERV builds the table + notes</span><em>→</em><span class="k">One Kite passkey for the total</span><em>→</em><span>Verify on-chain → N links</span><em>→</em><span>Each person claims</span><em>→</em><span>Take back the rest in one transfer</span></div>
+        <p>Each person is an ordinary gift with its own 128-bit link, so claim, paste-address and take-back rules are shared. A take-back locks every open gift first, then records one payout on each of them.</p></div>
+      <div class="card2"><h4>Agent API: the agent prepares, you approve</h4>
+        <div class="flow"><span>Agent: POST /api/v1/gifts or /drops</span><em>→</em><span class="s">SERV fills the gaps</span><em>→</em><span>approveUrl</span><em>→</em><span class="k">Owner approves with Kite passkey</span><em>→</em><span>Agent: GET status → link(s)</span></div>
+        <p>Kite wallet transfers always need the owner's passkey, so a key can never move money. Autonomous budgets will come through Kite sessions once Plot Twist is in Kite's service catalog.</p></div>
+    </div>
+
+    <div class="sec-t">④ States & safety</div>
     <div class="two">
       <div class="card2">
         <h4>Gift states</h4>
         <div class="sm"><span>awaiting_payment</span><em>→</em><span>sealed</span><em>→</em><span>claiming</span><em>→</em><span>claimed</span></div>
         <div class="sm"><span>sealed</span><em>→ window over →</em><span>reclaiming</span><em>→</em><span>reclaimed</span></div>
         <div class="sm"><span>awaiting_payment</span><em>→</em><span>payment_failed</span></div>
+        <div class="sm"><em>Drop:</em><span>awaiting_payment</span><em>→</em><span>live</span><em>· agent request:</em><span>pending</span><em>→</em><span>approved</span></div>
         <p>The sender picks the claim window (24h, 3d, 7d or 30d). After it, the recipient can still claim until the sender takes the gift back from the Dashboard. Only the gift amount comes back; the fee doesn't.</p>
       </div>
       <div class="card2">
@@ -189,7 +214,8 @@
           <div class="vi"><span class="q ok">✓</span><div><b>Payments verified on-chain</b>: token contract, amount, sender's Kite address; one transfer seals one gift.</div></div>
           <div class="vi"><span class="q ok">✓</span><div><b>Claims are signed</b> by the recipient's wallet over the gift code, address and a per-gift nonce.</div></div>
           <div class="vi"><span class="q ok">✓</span><div><b>No double payouts</b>: the tx hash is saved on broadcast; a gift reopens only if the transfer provably can't land.</div></div>
-          <div class="vi"><span class="q ok">✓</span><div><b>Unguessable links</b> (128-bit codes), rate limits on SERV, sign-in and claims, link previews without amounts.</div></div>
+          <div class="vi"><span class="q ok">✓</span><div><b>API keys only prepare</b>: stored as hashes, shown once, revocable; every payment waits for the owner's passkey.</div></div>
+          <div class="vi"><span class="q ok">✓</span><div><b>Unguessable links</b> (128-bit codes), rate limits on SERV, sign-in, claims and keys; pasted addresses are screened.</div></div>
         </div>
       </div>
     </div>
