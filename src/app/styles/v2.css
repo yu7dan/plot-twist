@@ -356,3 +356,13 @@ button.v-rw.more:hover { color: var(--text); }
 .v-field small { color: var(--dim); font-size: 12px; }
 .v-field code { justify-self: start; }
 @media (max-width: 640px) { .v-field { grid-template-columns: 1fr; gap: 4px; } }
+
+@media (max-width: 640px) {
+  .v-mobile-menu b { display: block; font-size: 15px; }
+  .v-mobile-menu .d { display: block; font-size: 12.5px; font-weight: 400; color: var(--muted); margin-top: 1px; }
+  .v-li .v-who { flex: 1 1 calc(100% - 44px); }
+  .v-li .am { margin-left: 42px; }
+  .v-li .v-st { margin-left: auto; }
+  .v-pcard .art { width: 76px; }
+  .v-pcard p { padding-right: 60px; }
+}
