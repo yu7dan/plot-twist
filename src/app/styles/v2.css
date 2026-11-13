@@ -1,4 +1,4 @@
-/* v2: dark + light themes and the app-first home (design/site-v6.html). Loaded last, so the theme
+/* v2: dark + light themes and the app-first home. Loaded last, so the theme
    variables below also re-skin every older component that already uses var(--…). */
 
 :root, [data-theme="dark"] {

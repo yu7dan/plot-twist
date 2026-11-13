@@ -54,4 +54,6 @@ docs/*.private.md
 
 # demo video tooling (kept locally, not part of the product)
 /video/
-/design/demo/
+
+# design drafts, prototypes and diagram sources (kept locally)
+/design/

@@ -135,7 +135,7 @@ sequenceDiagram
 
 <p align="center">
   <img src="docs/images/architecture.png" alt="Architecture: components, the end-to-end gift, Drop and Agent flows, states and safety" width="100%" />
-  <br /><sub>Full architecture — source: <a href="design/architecture-en.html"><code>design/architecture-en.html</code></a></sub>
+  <br /><sub>Full architecture: components, the end-to-end gift, Drop and agent flows, states and safety.</sub>
 </p>
 
 ### Where Kite Passport comes in
@@ -200,7 +200,6 @@ Without Redis settings, local dev stores everything in JSON files under `data/`.
 src/app          pages (/, /dashboard, /drops/[id], /approve/[id], /docs, /g/[code]) and API routes (incl. /api/v1)
 src/lib          Kite client, SERV, gifts, Drops, agent requests, API keys, usage, treasury, store (Redis / files)
 src/components   home panel (Gift · Drop · Agent API), Dashboard, Drop page, claim page, on the theme in src/app/styles
-design/          clickable prototypes, the v6/v7 visual drafts, architecture diagram
 docs/            roadmap and README images
 ```
 
