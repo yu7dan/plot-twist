@@ -8,6 +8,8 @@
 
 <p align="center">
   <a href="https://plot-twist-zeta.vercel.app"><b>▶ Try it live — plot-twist-zeta.vercel.app</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://youtu.be/Z39yJMGbOs8"><b>🎬 Watch the demo (1:39)</b></a>
 </p>
 
 <p align="center">
@@ -34,6 +36,11 @@ Sending money to someone usually feels like paying an invoice: an address, a num
 - **No wallet setup for the sender** — sign in to Kite with an email code (new users get a Passport on the spot), top up from MetaMask / Phantom, a card or an exchange.
 - **Recipients need no account** — any EVM or Solana wallet, or just paste an exchange deposit address. Gas is on us.
 - **Nothing is lost** — every gift and Drop has a claim window (24h–30d); whatever isn't claimed can be taken back.
+
+<p align="center">
+  <a href="https://youtu.be/Z39yJMGbOs8"><img src="https://img.youtube.com/vi/Z39yJMGbOs8/maxresdefault.jpg" alt="Plot Twist demo video: Gift, Drop and the Agent API in 99 seconds" width="85%" /></a>
+  <br /><sub>🎬 The demo in 99 seconds — Gift, Drop and the Agent API (English voice-over, EN/中文 subtitles).</sub>
+</p>
 
 <p align="center">
   <img src="docs/images/home.png" alt="Plot Twist home: the Gift panel, designed by SERV" width="100%" />
