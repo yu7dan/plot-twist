@@ -51,3 +51,7 @@ docs/*.private.md
 
 .vercel
 .env*
+
+# demo video build
+/video/node_modules
+/video/out
